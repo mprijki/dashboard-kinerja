@@ -36,7 +36,7 @@ st.markdown("""
 if os.path.exists("header.png"): st.image("header.png")
 else: st.title("📊 Dashboard Kinerja")
 
-# Fungsi Data dengan Pagination (Biar semua data ketarik)
+# Fungsi Data dengan Pagination
 @st.cache_data(ttl=3600)
 def get_list_unit():
     all_units = []
@@ -75,7 +75,7 @@ if pilih_tempat != "-- Pilih --":
         df_tampil = df_filtered[['nama', 'status_penilaian']].copy()
         df_tampil.columns = ["NAMA", "STATUS PENILAIAN"]
         
-        # Download (Sesuai yg tampil)
+        # Download
         buffer = io.BytesIO()
         with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
             df_tampil.to_excel(writer, index=False)
@@ -97,8 +97,8 @@ if pilih_tempat != "-- Pilih --":
         
         st.markdown('<div class="legend-box">🔵 Sangat Baik | 🟢 Baik | 🟡 Perbaikan<br>🟠 Kurang | 🔴 Sangat Kurang | 🔘 Blank</div>', unsafe_allow_html=True)
         
-        # Cards
-        df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).lower().str.strip()
+        # Cards - FIX: .str.lower() benerin posisi .str
+        df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
         s = df_filtered['status_clean'].value_counts()
         c1, c2, c3 = st.columns(3)
         c1.markdown(f'<div class="metro-card" style="background:#28a745"><span>SUDAH</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
@@ -107,4 +107,17 @@ if pilih_tempat != "-- Pilih --":
         
         st.write("---")
         
-        # Tabel
+        # Tabel dengan Paging 100
+        st.subheader("Detail Karyawan")
+        page_size = 100
+        total_pages = (len(df_tampil) // page_size) + 1
+        page_num = st.number_input("Pilih Halaman:", min_value=1, max_value=total_pages, value=1)
+        
+        df_page = df_tampil.iloc[(page_num-1)*page_size : page_num*page_size]
+        st.markdown(df_page.to_html(classes="custom-table", index=False), unsafe_allow_html=True)
+        st.caption(f"Halaman {page_num} dari {total_pages}")
+
+    else:
+        st.info("Data tidak ditemukan atau kosong.")
+else:
+    st.info("Pilih Perangkat Daerah di atas.")
