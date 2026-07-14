@@ -87,13 +87,15 @@ if pilih_tempat != "-- Pilih --":
     c1, c2, c3 = st.columns(3)
     c1.markdown(f'<div class="metro-card grad-sudah"><h3>SUDAH</h3><h1>{s.get("sudah", 0)}</h1></div>', unsafe_allow_html=True)
     c2.markdown(f'<div class="metro-card grad-belum"><h3>BELUM</h3><h1>{s.get("belum", 0)}</h1></div>', unsafe_allow_html=True)
-    c3.markdown(f'<div class="metro-card grad-none"><h3>TIDAK ADA</h3><h1>{s.get("tidak ada data", 0)}</h1></div>', unsafe_allow_html=True)
+    c3.markdown(f'<div class="metro-card grad-none"><h3>TIDAK ADA DATA</h3><h1>{s.get("tidak ada data", 0)}</h1></div>', unsafe_allow_html=True)
     
     st.write("---")
     
-    # 3. Tabel Detail
+    # 3. Tabel Detail (Tanpa Kuadran & Bersih)
     st.subheader("Detail Karyawan")
-    st.dataframe(df_filtered[['nama', 'unit_kerja', 'status_penilaian', 'kuadran_kinerja']], use_container_width=True)
+    # Dropna memastikan tidak ada data kosong yang bikin header berantakan
+    df_tampil = df_filtered[['nama', 'unit_kerja', 'status_penilaian']].dropna(subset=['nama'])
+    st.dataframe(df_tampil, use_container_width=True, hide_index=True)
     
     # 4. Download
     buffer = io.BytesIO()
