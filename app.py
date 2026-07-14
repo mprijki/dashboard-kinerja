@@ -19,9 +19,15 @@ st.markdown("""
     .grad-belum { background: linear-gradient(135deg, #fd7e14, #ffc107); }
     .grad-none { background: linear-gradient(135deg, #6c757d, #adb5bd); }
     
-    /* Tabel Responsive & Header Tengah */
-    [data-testid="stDataFrame"] { width: 100%; }
-    th { text-align: center !important; font-weight: bold !important; background-color: #add8e6 !important; }
+    /* Header Tabel Bold & Rata Tengah */
+    .stDataFrame thead tr th { 
+        text-align: center !important; 
+        font-weight: bold !important; 
+        background-color: #add8e6 !important; 
+        color: black !important;
+    }
+    /* Biar isi tabel rata tengah juga */
+    .stDataFrame tbody td { text-align: center !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -29,26 +35,45 @@ st.markdown("""
 try:
     st.image("header.png", width=250)
 except:
-    st.title("📊 Dashboard Kinerja - 2026")
+    st.title("📊 Dashboard Kinerja Triwulan - 2026")
 
-# Fungsi Data (Paginasi)
+# Fungsi Data (Paginasi Asli)
 @st.cache_data(ttl=3600)
 def get_list_unit():
-    return sorted(list(set(["Unit A", "Unit B"]))) # Ganti sesuai logic lu
+    all_units = []
+    page_size = 1000
+    page = 0
+    while True:
+        response = supabase.table("data_triwulan").select("unit_kerja").range(page * page_size, (page + 1) * page_size - 1).execute()
+        if not response.data: break
+        df_temp = pd.DataFrame(response.data)
+        all_units.extend(df_temp['unit_kerja'].unique().tolist())
+        if len(response.data) < page_size: break
+        page += 1
+    return sorted(list(set(all_units)))
 
 @st.cache_data(ttl=3600)
 def get_data_by_filter(pilih_tempat):
-    # Dummy data buat tes
-    return pd.DataFrame({'nama': ['Andi', 'Budi'], 'status_penilaian': ['Sudah', 'Belum'], 'kuadran_kinerja': ['baik', 'kurang']})
+    all_data = []
+    page_size = 1000
+    page = 0
+    while True:
+        response = supabase.table("data_triwulan").select("*").eq("unit_kerja", pilih_tempat).range(page * page_size, (page + 1) * page_size - 1).execute()
+        if not response.data: break
+        all_data.extend(response.data)
+        if len(response.data) < page_size: break
+        page += 1
+    return pd.DataFrame(all_data)
 
 # Filter
 list_unit = get_list_unit()
-col1, col2 = st.columns([3, 2]) # Proporsi biar tombol pas di hape
+col1, col2 = st.columns([3, 1])
 pilih_tempat = col1.selectbox("Pilih Perangkat Daerah:", options=["-- Pilih --"] + list_unit)
 
 if pilih_tempat != "-- Pilih --":
     df_filtered = get_data_by_filter(pilih_tempat)
     
+    # Download
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
         df_filtered.to_excel(writer, index=False)
@@ -57,7 +82,7 @@ if pilih_tempat != "-- Pilih --":
     st.write("---")
 
     # 1. BAR CHART
-    st.subheader("Distribusi Kinerja")
+    st.subheader(f"Distribusi Kinerja: {pilih_tempat}")
     order_kategori = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang', '0', 'tidak ada data']
     warna_kategori = {
         'sangat baik': '#007bff', 'baik': '#28a745', 'butuh perbaikan': '#d4ac0d',
@@ -70,10 +95,9 @@ if pilih_tempat != "-- Pilih --":
     fig.update_layout(xaxis={'showticklabels': False}, showlegend=True, legend=dict(orientation="h", yanchor="top", y=-0.2, xanchor="center", x=0.5), margin=dict(t=30, b=50, l=0, r=0))
     st.plotly_chart(fig, use_container_width=True)
     
-    # 2. Kartu Gradien (Dikecilin biar pas di hape)
+    # 2. Kartu
     df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
     s = df_filtered['status_clean'].value_counts()
-    
     c1, c2, c3 = st.columns(3)
     c1.markdown(f'<div class="metro-card grad-sudah"><b>SUDAH</b><br><h1>{s.get("sudah", 0)}</h1></div>', unsafe_allow_html=True)
     c2.markdown(f'<div class="metro-card grad-belum"><b>BELUM</b><br><h1>{s.get("belum", 0)}</h1></div>', unsafe_allow_html=True)
@@ -85,4 +109,8 @@ if pilih_tempat != "-- Pilih --":
     st.subheader("Detail Karyawan")
     df_tampil = df_filtered[['nama', 'status_penilaian']].dropna(subset=['nama'])
     df_tampil.columns = ['NAMA', 'STATUS PENILAIAN']
+    # Pake st.dataframe biar responsif di HP
     st.dataframe(df_tampil, use_container_width=True, hide_index=True)
+
+else:
+    st.info("Silakan pilih Perangkat Daerah di atas.")
