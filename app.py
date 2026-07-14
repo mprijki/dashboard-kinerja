@@ -18,4 +18,4 @@ def get_data():
 # 3. Nampilin datanya
 if st.button("Tampilkan Data"):
     data = get_data()
-    st.write(data)
+    st.dataframe(data)
