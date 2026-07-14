@@ -58,11 +58,18 @@ pilih_tempat = st.sidebar.selectbox("Pilih Perangkat Daerah:", options=["-- Pili
 if pilih_tempat != "-- Pilih --":
     df_filtered = get_data_by_filter(pilih_tempat)
     
-    # 1. Donut Chart
-    st.subheader(f"Distribusi Kuadran Kinerja: {pilih_tempat}")
-    kuadran_counts = df_filtered['kuadran_kinerja'].value_counts().reset_index()
-    kuadran_counts.columns = ['Kuadran', 'Total']
-    fig = px.pie(kuadran_counts, values='Total', names='Kuadran', hole=0.6)
+    # 1. BAR CHART (7 Batang Kinerja)
+    st.subheader(f"Distribusi Kinerja: {pilih_tempat}")
+    
+    # Urutan kategori yang diminta
+    order_kategori = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang', '0', 'tidak ada data']
+    
+    # Hitung dan reindex sesuai urutan
+    counts = df_filtered['kuadran_kinerja'].astype(str).str.lower().value_counts().reindex(order_kategori, fill_value=0).reset_index()
+    counts.columns = ['Kuadran', 'Total']
+    
+    fig = px.bar(counts, x='Kuadran', y='Total', text='Total', color='Kuadran')
+    fig.update_layout(xaxis={'categoryorder':'array', 'categoryarray':order_kategori})
     st.plotly_chart(fig, use_container_width=True)
     
     st.write("---")
