@@ -12,7 +12,6 @@ st.title("Dashboard Kinerja Triwulan - 2026")
 
 @st.cache_data
 def get_data():
-    # Narik semua data
     response = supabase.table("data_triwulan").select("*").execute()
     return pd.DataFrame(response.data)
 
@@ -20,30 +19,38 @@ df = get_data()
 
 # 2. Sidebar Filter
 st.sidebar.header("Filter Data")
-
-# Filter khusus Tempat Kerja
 opsi_tempat = sorted(df['unit_kerja'].unique().tolist())
 pilih_tempat = st.sidebar.selectbox("Pilih Perangkat Daerah:", options=["-- Pilih --"] + opsi_tempat)
 
-# 3. Logika Tampil Tabel
+# 3. Logika Tampil Data
 if pilih_tempat != "-- Pilih --":
-    # Filter data berdasarkan tempat kerja yang dipilih
+    # Filter data
     df_filtered = df[df['unit_kerja'] == pilih_tempat]
     
-    # Pilih kolom yang mau ditampilkan aja
-    kolom_tampil = ['nama', 'unit_kerja', 'status_penilaian']
-    
-    # Metrik Ringkasan (Rekap peringkat_kerja)
+    # --- BAGIAN RINGKASAN (REKAP) ---
     st.subheader(f"Ringkasan Kinerja: {pilih_tempat}")
     
-    # Bikin rekap hitungan per peringkat
-    rekap = df_filtered['kuadran_kinerja'].value_counts().reset_index()
-    rekap.columns = ['Peringkat', 'Jumlah']
-    st.table(rekap) # Tabel rekap di atas
+    # Hitung total dan breakdown peringkat
+    total_karyawan = len(df_filtered)
+    rekap = df_filtered['kuadran_kinerja'].value_counts().reindex(
+        ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang'], fill_value=0
+    )
     
-    # Tampilkan tabel utama (cuma kolom yang diminta)
-    st.subheader("Detail Data")
+    # Tampilkan Metrik Total dulu biar gede
+    st.metric("Total pegawai", total_karyawan)
+    
+    # Tampilkan Rekap Peringkat biar rapi (horizontal)
+    cols = st.columns(5)
+    peringkat_list = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang']
+    for i, p in enumerate(peringkat_list):
+        cols[i].metric(p.title(), rekap[p])
+    
+    st.write("---")
+    
+    # --- BAGIAN DETAIL TABEL ---
+    st.subheader("Detail Karyawan")
+    kolom_tampil = ['nama', 'unit_kerja', 'status_penilaian']
     st.dataframe(df_filtered[kolom_tampil], use_container_width=True)
     
 else:
-    st.info("Silakan pilih 'Tempat Kerja' di sidebar untuk menampilkan data.")
+    st.info("Silakan pilih 'Perangkat Daerah' di sidebar untuk mulai melihat data.")
