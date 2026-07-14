@@ -15,8 +15,13 @@ st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 # CSS Styling (Fixed & Responsive)
 st.markdown("""
 <style>
-    /* Paksa header gambar biar rapi dan gak meluber */
-    .header-img-local { width: 100%; max-width: 300px; display: block; margin: 0 auto 15px auto; }
+    /* Maksa gambar header biar full 100% dan rapi */
+    .stImage > img {
+        width: 100% !important;
+        height: auto !important;
+        display: block !important;
+        margin: 0 auto !important;
+    }
     .metro-card { padding: 15px; border-radius: 12px; color: white; text-align: center; margin-bottom: 10px; font-weight: bold; }
     .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
     .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; }
@@ -25,14 +30,13 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 1. Header Panggil File Lokal ---
-# Streamlit bakal cari 'header.png' di folder yang sama dengan app.py
+# 1. Header (Pasti muncul kalau file ada di repo)
 if os.path.exists("header.png"):
-    st.image("header.png", use_container_width=False, width=300)
+    st.image("header.png")
 else:
     st.title("📊 Dashboard Kinerja")
 
-# Fungsi Data (Paginasi)
+# Fungsi Data (Paginasi Asli)
 @st.cache_data(ttl=3600)
 def get_list_unit():
     all_units = []
@@ -96,13 +100,4 @@ if pilih_tempat != "-- Pilih --":
     c1, c2, c3 = st.columns(3)
     c1.markdown(f'<div class="metro-card" style="background:#28a745">SUDAH<br><h1>{s.get("sudah", 0)}</h1></div>', unsafe_allow_html=True)
     c2.markdown(f'<div class="metro-card" style="background:#fd7e14">BELUM<br><h1>{s.get("belum", 0)}</h1></div>', unsafe_allow_html=True)
-    c3.markdown(f'<div class="metro-card" style="background:#6c757d">BLANK<br><h1>{s.get("tidak ada data", 0)}</h1></div>', unsafe_allow_html=True)
-    
-    st.write("---")
-    
-    # Tabel
-    st.subheader("Detail Karyawan")
-    df_tampil = df_filtered[['nama', 'status_penilaian']].dropna(subset=['nama'])
-    st.markdown(df_tampil.to_html(classes="custom-table", index=False, header=["NAMA", "STATUS PENILAIAN"]), unsafe_allow_html=True)
-else:
-    st.info("Pilih Perangkat Daerah di atas.")
+    c3.markdown(f'<div class="metro-card"
