@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import io
+import os
 from supabase import create_client
 
 # Setup Koneksi
@@ -11,22 +12,27 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling Total
+# CSS Styling (Fixed & Responsive)
 st.markdown("""
 <style>
-    .header-img { width: 100%; max-width: 300px; display: block; margin: 0 auto 15px auto; }
+    /* Paksa header gambar biar rapi dan gak meluber */
+    .header-img-local { width: 100%; max-width: 300px; display: block; margin: 0 auto 15px auto; }
     .metro-card { padding: 15px; border-radius: 12px; color: white; text-align: center; margin-bottom: 10px; font-weight: bold; }
     .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-    .custom-table th { background-color: #add8e6; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; }
+    .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; }
     .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
-    .legend-box { font-size: 12px; margin-bottom: 15px; }
+    .legend-box { font-size: 12px; margin-bottom: 15px; text-align: center; }
 </style>
 """, unsafe_allow_html=True)
 
-# 1. Header
-st.markdown('<img src="https://i.imgur.com/v8o3iZk.png" class="header-img">', unsafe_allow_html=True)
+# --- 1. Header Panggil File Lokal ---
+# Streamlit bakal cari 'header.png' di folder yang sama dengan app.py
+if os.path.exists("header.png"):
+    st.image("header.png", use_container_width=False, width=300)
+else:
+    st.title("📊 Dashboard Kinerja")
 
-# Fungsi Data
+# Fungsi Data (Paginasi)
 @st.cache_data(ttl=3600)
 def get_list_unit():
     all_units = []
