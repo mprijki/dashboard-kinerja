@@ -64,10 +64,14 @@ if pilih_tempat != "-- Pilih --":
     df_filtered = get_data_by_filter(pilih_tempat)
     
     if not df_filtered.empty and 'kuadran_kinerja' in df_filtered.columns:
-        # Download
+        # Siapkan df_tampil yang rapi
+        df_tampil = df_filtered[['nama', 'status_penilaian']].copy()
+        df_tampil.columns = ["NAMA", "STATUS PENILAIAN"]
+        
+        # Download (Sekarang pake df_tampil biar cuma 2 kolom)
         buffer = io.BytesIO()
         with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-            df_filtered.to_excel(writer, index=False)
+            df_tampil.to_excel(writer, index=False)
         st.download_button("📥 Download Excel", buffer.getvalue(), f"Data_{pilih_tempat}.xlsx", use_container_width=True)
         
         st.write("---")
@@ -99,8 +103,6 @@ if pilih_tempat != "-- Pilih --":
         
         # Tabel
         st.subheader("Detail Karyawan")
-        df_tampil = df_filtered[['nama', 'status_penilaian']].copy()
-        df_tampil.columns = ["NAMA", "STATUS PENILAIAN"]
         st.markdown(df_tampil.to_html(classes="custom-table", index=False), unsafe_allow_html=True)
     else:
         st.info("Data tidak ditemukan atau kosong.")
