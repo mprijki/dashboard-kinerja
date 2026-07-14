@@ -11,31 +11,31 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="wide")
 
-# CSS Styling - Dipaksa ke Tengah & Bold
+# CSS Styling (Lebih Agresif)
 st.markdown("""
 <style>
+    /* Header Gambar Center */
+    .img-center { display: flex; justify-content: center; margin-bottom: 20px; }
+    
+    /* Tabel: Paksa Bold, Tengah, & Biru Muda */
+    [data-testid="stDataFrame"] thead tr th { 
+        background-color: #add8e6 !important; 
+        color: black !important;
+        font-weight: 900 !important; 
+        text-align: center !important;
+        text-transform: uppercase !important;
+    }
+    [data-testid="stDataFrame"] tbody td { text-align: center !important; }
+    
     .metro-card { padding: 15px; border-radius: 10px; color: white; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 10px; }
     .grad-sudah { background: linear-gradient(135deg, #28a745, #20c997); }
     .grad-belum { background: linear-gradient(135deg, #fd7e14, #ffc107); }
     .grad-none { background: linear-gradient(135deg, #6c757d, #adb5bd); }
-    
-    /* Header Tabel: Bold & Rata Tengah */
-    .stDataFrame thead tr th { 
-        text-align: center !important; 
-        font-weight: 900 !important; 
-        background-color: #add8e6 !important; 
-        color: black !important;
-        vertical-align: middle !important;
-    }
-    .stDataFrame tbody td { text-align: center !important; }
-    
-    /* Center Header Gambar */
-    .header-container { display: flex; justify-content: center; margin-bottom: 20px; }
 </style>
 """, unsafe_allow_html=True)
 
-# Header Gambar dengan Container
-st.markdown('<div class="header-container">', unsafe_allow_html=True)
+# 1. Header Gambar
+st.markdown('<div class="img-center">', unsafe_allow_html=True)
 try:
     st.image("header.png", width=300)
 except:
@@ -100,14 +100,7 @@ if pilih_tempat != "-- Pilih --":
     fig.update_layout(
         xaxis={'showticklabels': False}, 
         showlegend=True, 
-        legend=dict(
-            orientation="h", 
-            yanchor="top", 
-            y=-0.3, # Agak diturunin biar nggak tumpuk
-            xanchor="center", 
-            x=0.5,
-            font=dict(size=10) # Perkecil font legend biar nggak berantakan di HP
-        ), 
+        legend=dict(orientation="h", yanchor="top", y=-0.3, xanchor="center", x=0.5, font=dict(size=9)), 
         margin=dict(t=20, b=80, l=0, r=0)
     )
     st.plotly_chart(fig, use_container_width=True)
@@ -122,7 +115,7 @@ if pilih_tempat != "-- Pilih --":
     
     st.write("---")
     
-    # 3. Tabel Detail
+    # 3. Tabel
     st.subheader("Detail Karyawan")
     df_tampil = df_filtered[['nama', 'status_penilaian']].dropna(subset=['nama'])
     df_tampil.columns = ['NAMA', 'STATUS PENILAIAN']
