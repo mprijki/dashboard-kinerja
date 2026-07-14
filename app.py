@@ -12,7 +12,7 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS & JS Styling - Final Boss Fix (Anti-Keyboard)
+# CSS Styling - Final Boss Fix (Anti-Keyboard)
 st.markdown("""
 <style>
     /* 1. Sembunyiin Header Streamlit */
@@ -24,11 +24,16 @@ st.markdown("""
         padding-bottom: 1rem !important;
     }
     
-    /* 3. Mencegah Keyboard muncul di Selectbox */
+    /* 3. BUNUH fungsi input selectbox biar kibot gak nongol */
     [data-baseweb="select"] input { 
-        pointer-events: none !important; 
-        caret-color: transparent !important; 
-        user-select: none !important; 
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        padding: 0 !important;
+        margin: -1px !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        border: 0 !important;
     }
     
     /* 4. Header full width */
@@ -53,21 +58,6 @@ st.markdown("""
     .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
     .legend-box { font-size: 12px; margin-bottom: 15px; text-align: center; }
 </style>
-
-<script>
-    // JS buat nambahin atribut readonly ke semua input combobox
-    window.onload = function() {
-        const checkExist = setInterval(function() {
-            const inputs = document.querySelectorAll('input[role="combobox"]');
-            if (inputs.length > 0) {
-                inputs.forEach(input => {
-                    input.setAttribute('readonly', 'true');
-                });
-                clearInterval(checkExist);
-            }
-        }, 500);
-    };
-</script>
 """, unsafe_allow_html=True)
 
 # 1. Header
@@ -124,27 +114,4 @@ if pilih_tempat != "-- Pilih --":
     order_kategori = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang', '0', 'tidak ada data']
     warna_kategori = {'sangat baik': '#007bff', 'baik': '#28a745', 'butuh perbaikan': '#d4ac0d', 'kurang': '#fd7e14', 'sangat kurang': '#f44336', '0': '#566573', 'tidak ada data': '#8b0000'}
     
-    counts = df_filtered['kuadran_kinerja'].astype(str).str.lower().value_counts().reindex(order_kategori, fill_value=0).reset_index()
-    counts.columns = ['Kuadran', 'Total']
-    
-    fig = px.bar(counts, x='Kuadran', y='Total', color='Kuadran', color_discrete_map=warna_kategori)
-    fig.update_layout(
-        showlegend=False, 
-        xaxis=dict(title=None, showticklabels=False), 
-        yaxis=dict(title=None),                      
-        margin=dict(t=10, b=10, l=10, r=10)
-    )
-    st.plotly_chart(fig, use_container_width=True)
-    
-    # Legend
-    st.markdown('<div class="legend-box">🔵 Sangat Baik | 🟢 Baik | 🟡 Perbaikan<br>🟠 Kurang | 🔴 Sangat Kurang | 🔘 Blank</div>', unsafe_allow_html=True)
-    
-    # Cards
-    df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
-    s = df_filtered['status_clean'].value_counts()
-    c1, c2, c3 = st.columns(3)
-    c1.markdown(f'<div class="metro-card" style="background:#28a745"><span>SUDAH</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
-    c2.markdown(f'<div class="metro-card" style="background:#fd7e14"><span>BELUM</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
-    c3.markdown(f'<div class="metro-card" style="background:#6c757d"><span>BLANK</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
-    
-    st
+    counts = df_filtered['kuadran_kinerja'].astype(str).str.lower().value_counts().reindex(order_kategori, fill_value=0).reset_
