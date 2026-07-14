@@ -88,13 +88,20 @@ if pilih_tempat != "-- Pilih --":
     counts.columns = ['Kuadran', 'Total']
     
     fig = px.bar(counts, x='Kuadran', y='Total', color='Kuadran', color_discrete_map=warna_kategori)
-    fig.update_layout(showlegend=False, xaxis={'showticklabels': False}, margin=dict(t=10, b=10, l=10, r=10))
+    
+    # Update layout: Matiin semua axis title & label biar plong
+    fig.update_layout(
+        showlegend=False, 
+        xaxis=dict(title=None, showticklabels=False), 
+        yaxis=dict(title=None),                      
+        margin=dict(t=10, b=10, l=10, r=10)
+    )
     st.plotly_chart(fig, use_container_width=True)
     
     # Legend Manual
     st.markdown('<div class="legend-box">🔵 Sangat Baik | 🟢 Baik | 🟡 Perbaikan<br>🟠 Kurang | 🔴 Sangat Kurang | 🔘 Blank</div>', unsafe_allow_html=True)
     
-    # Cards (Fixed F-String)
+    # Cards
     df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
     s = df_filtered['status_clean'].value_counts()
     c1, c2, c3 = st.columns(3)
