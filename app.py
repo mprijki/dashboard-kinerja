@@ -11,25 +11,22 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling (Fixed & Responsive)
+# CSS Styling Total
 st.markdown("""
 <style>
-    .main { max-width: 800px; margin: 0 auto; }
-    .header-img { width: 100%; max-width: 400px; display: block; margin: 0 auto 20px auto; }
-    .metro-card { padding: 15px; border-radius: 12px; color: white; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin-bottom: 10px; }
-    .custom-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-    .custom-table th { background-color: #add8e6; color: black; padding: 12px; text-align: center; font-weight: 900; border: 1px solid #ddd; }
-    .custom-table td { padding: 10px; text-align: center; border: 1px solid #ddd; }
+    .header-img { width: 100%; max-width: 300px; display: block; margin: 0 auto 15px auto; }
+    .metro-card { padding: 15px; border-radius: 12px; color: white; text-align: center; margin-bottom: 10px; font-weight: bold; }
+    .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+    .custom-table th { background-color: #add8e6; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; }
+    .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
+    .legend-box { font-size: 12px; margin-bottom: 15px; }
 </style>
 """, unsafe_allow_html=True)
 
-# Header Gambar
-try:
-    st.markdown('<img src="header.png" class="header-img">', unsafe_allow_html=True)
-except:
-    st.title("📊 Dashboard Kinerja")
+# 1. Header
+st.markdown('<img src="https://i.imgur.com/v8o3iZk.png" class="header-img">', unsafe_allow_html=True)
 
-# --- FUNGSI ASLI LU ---
+# Fungsi Data
 @st.cache_data(ttl=3600)
 def get_list_unit():
     all_units = []
@@ -75,24 +72,29 @@ if pilih_tempat != "-- Pilih --":
     # Chart
     st.subheader(f"Distribusi: {pilih_tempat}")
     order_kategori = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang', '0', 'tidak ada data']
+    warna_kategori = {'sangat baik': '#007bff', 'baik': '#28a745', 'butuh perbaikan': '#d4ac0d', 'kurang': '#fd7e14', 'sangat kurang': '#f44336', '0': '#566573', 'tidak ada data': '#8b0000'}
+    
     counts = df_filtered['kuadran_kinerja'].astype(str).str.lower().value_counts().reindex(order_kategori, fill_value=0).reset_index()
     counts.columns = ['Kuadran', 'Total']
     
-    fig = px.bar(counts, x='Kuadran', y='Total', color='Kuadran')
-    fig.update_layout(xaxis={'showticklabels': False}, legend=dict(orientation="h", yanchor="top", y=-0.2, xanchor="center", x=0.5))
+    fig = px.bar(counts, x='Kuadran', y='Total', color='Kuadran', color_discrete_map=warna_kategori)
+    fig.update_layout(showlegend=False, xaxis={'showticklabels': False}, margin=dict(t=10, b=10, l=10, r=10))
     st.plotly_chart(fig, use_container_width=True)
+    
+    # Legend Manual
+    st.markdown('<div class="legend-box">🔵 Sangat Baik | 🟢 Baik | 🟡 Perbaikan<br>🟠 Kurang | 🔴 Sangat Kurang | 🔘 Blank</div>', unsafe_allow_html=True)
     
     # Cards
     df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
     s = df_filtered['status_clean'].value_counts()
     c1, c2, c3 = st.columns(3)
-    c1.markdown(f'<div class="metro-card" style="background:#28a745">SUDAH<br><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
-    c2.markdown(f'<div class="metro-card" style="background:#fd7e14">BELUM<br><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
-    c3.markdown(f'<div class="metro-card" style="background:#6c757d">BLANK<br><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
+    c1.markdown(f'<div class="metro-card" style="background:#28a745">SUDAH<br><h1>{s.get("sudah", 0)}</h1></div>', unsafe_allow_html=True)
+    c2.markdown(f'<div class="metro-card" style="background:#fd7e14">BELUM<br><h1>{s.get("belum", 0)}</h1></div>', unsafe_allow_html=True)
+    c3.markdown(f'<div class="metro-card" style="background:#6c757d">BLANK<br><h1>{s.get("tidak ada data", 0)}</h1></div>', unsafe_allow_html=True)
     
     st.write("---")
     
-    # Tabel Custom
+    # Tabel
     st.subheader("Detail Karyawan")
     df_tampil = df_filtered[['nama', 'status_penilaian']].dropna(subset=['nama'])
     st.markdown(df_tampil.to_html(classes="custom-table", index=False, header=["NAMA", "STATUS PENILAIAN"]), unsafe_allow_html=True)
