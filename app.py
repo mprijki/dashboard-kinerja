@@ -101,8 +101,8 @@ if pilih_tempat != "-- Pilih --":
         df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
         s = df_filtered['status_clean'].value_counts()
         c1, c2, c3 = st.columns(3)
-        c1.markdown(f'<div class="metro-card" style="background:#28a745"><span>SUDAH</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
-        c2.markdown(f'<div class="metro-card" style="background:#fd7e14"><span>BELUM</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
+        c1.markdown(f'<div class="metro-card" style="background:#28a745"><span>SUDAH MEMILIKI NILAI</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
+        c2.markdown(f'<div class="metro-card" style="background:#fd7e14"><span>BELUM MEMILIKI NILAI</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
         c3.markdown(f'<div class="metro-card" style="background:#6c757d"><span>TIDAK ADA DATA</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
         
         st.write("---")
