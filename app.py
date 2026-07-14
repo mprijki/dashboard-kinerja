@@ -8,23 +8,36 @@ key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="wide")
-st.title("📊 Dashboard Kinerja Triwulan - 2026")
+st.title("Dashboard Kinerja Triwulan - 2026")
 
-# 1. Fungsi buat narik DAFTAR unit kerja saja
+# 1. Fungsi narik DAFTAR unit kerja (looping 30rb data)
 @st.cache_data
 def get_list_unit():
-    response = supabase.table("data_triwulan").select("unit_kerja").execute()
-    df_temp = pd.DataFrame(response.data)
-    return sorted(df_temp['unit_kerja'].unique().tolist())
+    all_units = []
+    page_size = 1000
+    page = 0
+    while True:
+        response = supabase.table("data_triwulan").select("unit_kerja").range(page * page_size, (page + 1) * page_size - 1).execute()
+        if not response.data: break
+        df_temp = pd.DataFrame(response.data)
+        all_units.extend(df_temp['unit_kerja'].unique().tolist())
+        if len(response.data) < page_size: break
+        page += 1
+    return sorted(list(set(all_units)))
 
-# 2. Fungsi buat narik data spesifik per unit
+# 2. Fungsi narik data spesifik per unit (looping buat yang >1000 pegawai)
 @st.cache_data
 def get_data_by_filter(pilih_tempat):
-    response = supabase.table("data_triwulan") \
-        .select("*") \
-        .eq("unit_kerja", pilih_tempat) \
-        .execute()
-    return pd.DataFrame(response.data)
+    all_data = []
+    page_size = 1000
+    page = 0
+    while True:
+        response = supabase.table("data_triwulan").select("*").eq("unit_kerja", pilih_tempat).range(page * page_size, (page + 1) * page_size - 1).execute()
+        if not response.data: break
+        all_data.extend(response.data)
+        if len(response.data) < page_size: break
+        page += 1
+    return pd.DataFrame(all_data)
 
 # Sidebar
 st.sidebar.header("Filter Data")
@@ -37,41 +50,37 @@ if pilih_tempat != "-- Pilih --":
     
     st.subheader(f"Ringkasan Kinerja: {pilih_tempat}")
     
-    # --- METRIK TOTAL ---
+    # Metrik Total
     total_karyawan = len(df_filtered)
     st.metric("Total Pegawai", total_karyawan)
-    
     st.write("---")
     
-    # --- STATUS PENILAIAN ---
+    # Status Penilaian (Case-insensitive)
     st.subheader("Status Penilaian")
-    status_rekap = df_filtered['status_penilaian'].value_counts().reindex(
-        ['SUDAH', 'BELUM', 'TIDAK ADA DATA'], fill_value=0
-    )
-    col_status1, col_status2, col_status3 = st.columns(3)
-    col_status1.metric("Sudah", status_rekap['SUDAH'])
-    col_status2.metric("Belum", status_rekap['BELUM'])
-    col_status3.metric("Tidak Ada Data", status_rekap['TIDAK ADA DATA'])
+    df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
+    s = df_filtered['status_clean'].value_counts()
+    
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Sudah", s.get('SUDAH', 0))
+    c2.metric("Belum", s.get('BELUM', 0))
+    c3.metric("Tidak Ada Data", s.get('TIDAK ADA DATA', 0))
     
     st.write("---")
     
-    # --- REKAP PERINGKAT ---
+    # Distribusi Kinerja
     st.subheader("Distribusi Kinerja")
-    rekap = df_filtered['kuadran_kinerja'].value_counts().reindex(
+    k = df_filtered['kuadran_kinerja'].value_counts().reindex(
         ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang'], fill_value=0
     )
-    
     cols = st.columns(5)
-    peringkat_list = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang']
-    for i, p in enumerate(peringkat_list):
-        cols[i].metric(p.title(), rekap[p])
+    labels = ['Sangat Baik', 'Baik', 'Butuh Perbaikan', 'Kurang', 'Sangat Kurang']
+    for i, col_name in enumerate(['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang']):
+        cols[i].metric(labels[i], k[col_name])
 
     st.write("---")
     
-    # --- DETAIL TABEL ---
+    # Detail Tabel
     st.subheader("Detail Karyawan")
-    kolom_tampil = ['nama', 'unit_kerja', 'status_penilaian']
-    st.dataframe(df_filtered[kolom_tampil], use_container_width=True)
-    
+    st.dataframe(df_filtered[['nama', 'unit_kerja', 'status_penilaian']], use_container_width=True)
 else:
     st.info("Silakan pilih 'Perangkat Daerah' di sidebar untuk mulai melihat data.")
