@@ -12,17 +12,21 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling (Fixed & Responsive)
+# CSS Styling (Fixed, Responsive, & Centered Cards)
 st.markdown("""
 <style>
-    /* Maksa gambar header biar full 100% dan rapi */
-    .stImage > img {
-        width: 100% !important;
-        height: auto !important;
-        display: block !important;
-        margin: 0 auto !important;
+    /* Maksa gambar header biar full 100% */
+    .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
+    
+    /* Metro Card - Center Total */
+    .metro-card { 
+        padding: 15px 5px; border-radius: 12px; color: white; margin-bottom: 10px; font-weight: bold;
+        display: flex; flex-direction: column; justify-content: center; align-items: center; height: 90px;
     }
-    .metro-card { padding: 15px; border-radius: 12px; color: white; text-align: center; margin-bottom: 10px; font-weight: bold; }
+    .metro-card span { font-size: 13px; margin-bottom: 5px; }
+    .metro-card b { font-size: 22px; }
+    
+    /* Tabel */
     .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
     .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; }
     .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
@@ -88,8 +92,6 @@ if pilih_tempat != "-- Pilih --":
     counts.columns = ['Kuadran', 'Total']
     
     fig = px.bar(counts, x='Kuadran', y='Total', color='Kuadran', color_discrete_map=warna_kategori)
-    
-    # Update layout: Matiin semua axis title & label biar plong
     fig.update_layout(
         showlegend=False, 
         xaxis=dict(title=None, showticklabels=False), 
@@ -101,13 +103,13 @@ if pilih_tempat != "-- Pilih --":
     # Legend Manual
     st.markdown('<div class="legend-box">🔵 Sangat Baik | 🟢 Baik | 🟡 Perbaikan<br>🟠 Kurang | 🔴 Sangat Kurang | 🔘 Blank</div>', unsafe_allow_html=True)
     
-    # Cards
+    # Cards (Teks di tengah pakai <span> dan <b>)
     df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
     s = df_filtered['status_clean'].value_counts()
     c1, c2, c3 = st.columns(3)
-    c1.markdown(f'<div class="metro-card" style="background:#28a745">SUDAH<br><h1>{s.get("sudah", 0)}</h1></div>', unsafe_allow_html=True)
-    c2.markdown(f'<div class="metro-card" style="background:#fd7e14">BELUM<br><h1>{s.get("belum", 0)}</h1></div>', unsafe_allow_html=True)
-    c3.markdown(f'<div class="metro-card" style="background:#6c757d">BLANK<br><h1>{s.get("tidak ada data", 0)}</h1></div>', unsafe_allow_html=True)
+    c1.markdown(f'<div class="metro-card" style="background:#28a745"><span>SUDAH</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
+    c2.markdown(f'<div class="metro-card" style="background:#fd7e14"><span>BELUM</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
+    c3.markdown(f'<div class="metro-card" style="background:#6c757d"><span>BLANK</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
     
     st.write("---")
     
