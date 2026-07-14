@@ -12,21 +12,16 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - Final Clean
+# CSS Styling
 st.markdown("""
 <style>
     [data-testid="stHeader"] { display: none; }
     .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; }
-    
     .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
-    
-    /* Metro Card */
     .metro-card { 
         padding: 10px 5px; border-radius: 12px; color: white; margin-bottom: 10px; font-weight: bold;
         display: flex; flex-direction: column; justify-content: center; align-items: center; height: 80px;
     }
-    
-    /* Tabel Header Rapi & Uppercase */
     .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
     .custom-table th { 
         background-color: #add8e6; color: black; padding: 10px; text-align: center; 
@@ -41,20 +36,33 @@ st.markdown("""
 if os.path.exists("header.png"): st.image("header.png")
 else: st.title("📊 Dashboard Kinerja")
 
-# Fungsi Data
+# Fungsi Data (Pagination/Range biar data > 1000 kebaca semua)
 @st.cache_data(ttl=3600)
 def get_list_unit():
-    try:
-        response = supabase.table("data_triwulan").select("unit_kerja").execute()
-        return sorted(list(set([item['unit_kerja'] for item in response.data])))
-    except: return []
+    all_units = []
+    page_size = 1000
+    page = 0
+    while True:
+        response = supabase.table("data_triwulan").select("unit_kerja").range(page * page_size, (page + 1) * page_size - 1).execute()
+        if not response.data: break
+        df_temp = pd.DataFrame(response.data)
+        all_units.extend(df_temp['unit_kerja'].unique().tolist())
+        if len(response.data) < page_size: break
+        page += 1
+    return sorted(list(set(all_units)))
 
 @st.cache_data(ttl=3600)
 def get_data_by_filter(pilih_tempat):
-    try:
-        response = supabase.table("data_triwulan").select("*").eq("unit_kerja", pilih_tempat).execute()
-        return pd.DataFrame(response.data)
-    except: return pd.DataFrame()
+    all_data = []
+    page_size = 1000
+    page = 0
+    while True:
+        response = supabase.table("data_triwulan").select("*").eq("unit_kerja", pilih_tempat).range(page * page_size, (page + 1) * page_size - 1).execute()
+        if not response.data: break
+        all_data.extend(response.data)
+        if len(response.data) < page_size: break
+        page += 1
+    return pd.DataFrame(all_data)
 
 # Filter
 list_unit = get_list_unit()
@@ -64,11 +72,10 @@ if pilih_tempat != "-- Pilih --":
     df_filtered = get_data_by_filter(pilih_tempat)
     
     if not df_filtered.empty and 'kuadran_kinerja' in df_filtered.columns:
-        # Siapkan df_tampil yang rapi
         df_tampil = df_filtered[['nama', 'status_penilaian']].copy()
         df_tampil.columns = ["NAMA", "STATUS PENILAIAN"]
         
-        # Download (Sekarang pake df_tampil biar cuma 2 kolom)
+        # Download
         buffer = io.BytesIO()
         with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
             df_tampil.to_excel(writer, index=False)
@@ -88,7 +95,6 @@ if pilih_tempat != "-- Pilih --":
         fig.update_layout(showlegend=False, xaxis=dict(title=None, showticklabels=False), yaxis=dict(title=None), margin=dict(t=10, b=10, l=10, r=10))
         st.plotly_chart(fig, use_container_width=True)
         
-        # Legend
         st.markdown('<div class="legend-box">🔵 Sangat Baik | 🟢 Baik | 🟡 Perbaikan<br>🟠 Kurang | 🔴 Sangat Kurang | 🔘 Blank</div>', unsafe_allow_html=True)
         
         # Cards
