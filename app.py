@@ -46,12 +46,12 @@ if pilih_tempat != "-- Pilih --":
     # --- STATUS PENILAIAN ---
     st.subheader("Status Penilaian")
     status_rekap = df_filtered['status_penilaian'].value_counts().reindex(
-        ['sudah', 'belum', 'tidak ada data'], fill_value=0
+        ['SUDAH', 'BELUM', 'TIDAK ADA DATA'], fill_value=0
     )
     col_status1, col_status2, col_status3 = st.columns(3)
-    col_status1.metric("Sudah", status_rekap['sudah'])
-    col_status2.metric("Belum", status_rekap['belum'])
-    col_status3.metric("Tidak Ada Data", status_rekap['tidak ada data'])
+    col_status1.metric("Sudah", status_rekap['SUDAH'])
+    col_status2.metric("Belum", status_rekap['BELUM'])
+    col_status3.metric("Tidak Ada Data", status_rekap['TIDAK ADA DATA'])
     
     st.write("---")
     
