@@ -12,7 +12,7 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - Final & Clean
+# CSS & JS Styling - Final Boss Fix (Anti-Keyboard)
 st.markdown("""
 <style>
     /* 1. Sembunyiin Header Streamlit */
@@ -26,9 +26,9 @@ st.markdown("""
     
     /* 3. Mencegah Keyboard muncul di Selectbox */
     [data-baseweb="select"] input { 
-    pointer-events: none !important; 
-    caret-color: transparent !important; 
-    user-select: none !important; 
+        pointer-events: none !important; 
+        caret-color: transparent !important; 
+        user-select: none !important; 
     }
     
     /* 4. Header full width */
@@ -53,6 +53,21 @@ st.markdown("""
     .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
     .legend-box { font-size: 12px; margin-bottom: 15px; text-align: center; }
 </style>
+
+<script>
+    // JS buat nambahin atribut readonly ke semua input combobox
+    window.onload = function() {
+        const checkExist = setInterval(function() {
+            const inputs = document.querySelectorAll('input[role="combobox"]');
+            if (inputs.length > 0) {
+                inputs.forEach(input => {
+                    input.setAttribute('readonly', 'true');
+                });
+                clearInterval(checkExist);
+            }
+        }, 500);
+    };
+</script>
 """, unsafe_allow_html=True)
 
 # 1. Header
@@ -132,11 +147,4 @@ if pilih_tempat != "-- Pilih --":
     c2.markdown(f'<div class="metro-card" style="background:#fd7e14"><span>BELUM</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
     c3.markdown(f'<div class="metro-card" style="background:#6c757d"><span>BLANK</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
     
-    st.write("---")
-    
-    # Tabel
-    st.subheader("Detail Karyawan")
-    df_tampil = df_filtered[['nama', 'status_penilaian']].dropna(subset=['nama'])
-    st.markdown(df_tampil.to_html(classes="custom-table", index=False, header=["NAMA", "STATUS PENILAIAN"]), unsafe_allow_html=True)
-else:
-    st.info("Pilih Perangkat Daerah di atas.")
+    st
