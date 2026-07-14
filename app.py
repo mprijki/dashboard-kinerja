@@ -12,24 +12,21 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - Final Fix
+# CSS Styling (Fixed, Responsive, & Centered Cards)
 st.markdown("""
 <style>
-    /* 1. Tarik container ke atas biar gak ada gap kosong */
-    .block-container { padding-top: 1.5rem !important; margin-top: -1.5rem !important; }
-    
-    /* 2. Header full width */
+    /* Maksa gambar header biar full 100% */
     .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
     
-    /* 3. Metro Card - Center Total */
+    /* Metro Card - Center Total */
     .metro-card { 
-        padding: 10px 5px; border-radius: 12px; color: white; margin-bottom: 10px; font-weight: bold;
-        display: flex; flex-direction: column; justify-content: center; align-items: center; height: 80px;
+        padding: 15px 5px; border-radius: 12px; color: white; margin-bottom: 10px; font-weight: bold;
+        display: flex; flex-direction: column; justify-content: center; align-items: center; height: 90px;
     }
-    .metro-card span { font-size: 12px; margin-bottom: 2px; }
-    .metro-card b { font-size: 20px; }
+    .metro-card span { font-size: 13px; margin-bottom: 5px; }
+    .metro-card b { font-size: 22px; }
     
-    /* 4. Tabel */
+    /* Tabel */
     .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
     .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; }
     .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
@@ -103,10 +100,10 @@ if pilih_tempat != "-- Pilih --":
     )
     st.plotly_chart(fig, use_container_width=True)
     
-    # Legend
+    # Legend Manual
     st.markdown('<div class="legend-box">🔵 Sangat Baik | 🟢 Baik | 🟡 Perbaikan<br>🟠 Kurang | 🔴 Sangat Kurang | 🔘 Blank</div>', unsafe_allow_html=True)
     
-    # Cards
+    # Cards (Teks di tengah pakai <span> dan <b>)
     df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
     s = df_filtered['status_clean'].value_counts()
     c1, c2, c3 = st.columns(3)
