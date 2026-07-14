@@ -12,11 +12,11 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - Fixed, Responsive, & Rapat
+# CSS Styling - Final Fix
 st.markdown("""
 <style>
-    /* 1. Ngilangin celah kosong di atas */
-    .block-container { padding-top: 1rem !important; }
+    /* 1. Tarik container ke atas biar gak ada gap kosong */
+    .block-container { padding-top: 1.5rem !important; margin-top: -1.5rem !important; }
     
     /* 2. Header full width */
     .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
@@ -37,7 +37,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Header
+# 1. Header
 if os.path.exists("header.png"):
     st.image("header.png")
 else:
