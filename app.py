@@ -12,34 +12,38 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
+# CSS & JS Styling
 st.markdown("""
 <style>
     [data-testid="stHeader"] { display: none; }
-    .block-container { padding-top: 0.5rem !important; }
+    .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; }
     
-    /* Trik Overlay: Nutupin input selectbox biar kibot gak kepancing */
-    .stSelectbox { position: relative; }
-    .stSelectbox::after {
-        content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: transparent; z-index: 999;
-    }
-    
-    .stImage > img { width: 100% !important; display: block !important; margin: 0 auto !important; }
+    .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
     .metro-card { 
         padding: 10px 5px; border-radius: 12px; color: white; margin-bottom: 10px; font-weight: bold;
         display: flex; flex-direction: column; justify-content: center; align-items: center; height: 80px;
     }
-    .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .custom-table th { background-color: #add8e6; padding: 10px; text-align: center; }
+    .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+    .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; border: 1px solid #ddd; }
     .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
+    .legend-box { font-size: 12px; margin-bottom: 15px; text-align: center; }
 </style>
+
+<script>
+    // Trik buat auto-blur (nutup keyboard) setelah pilih dari dropdown
+    document.addEventListener('click', function(e) {
+        if (e.target.matches('div[role="option"]')) {
+            document.activeElement.blur();
+        }
+    });
+</script>
 """, unsafe_allow_html=True)
 
 # 1. Header
 if os.path.exists("header.png"): st.image("header.png")
 else: st.title("📊 Dashboard Kinerja")
 
-# Fungsi Data (dengan proteksi)
+# Fungsi Data
 @st.cache_data(ttl=3600)
 def get_list_unit():
     try:
@@ -54,13 +58,14 @@ def get_data_by_filter(pilih_tempat):
         return pd.DataFrame(response.data)
     except: return pd.DataFrame()
 
-# Filter: Pake Selectbox Biasa tapi pake Trik Overlay di CSS
+# Filter
 list_unit = get_list_unit()
 pilih_tempat = st.selectbox("Pilih Perangkat Daerah:", ["-- Pilih --"] + list_unit)
 
 if pilih_tempat != "-- Pilih --":
     df_filtered = get_data_by_filter(pilih_tempat)
     
+    # Cek apakah dataframe punya data
     if not df_filtered.empty and 'kuadran_kinerja' in df_filtered.columns:
         # Download
         buffer = io.BytesIO()
@@ -71,6 +76,7 @@ if pilih_tempat != "-- Pilih --":
         st.write("---")
 
         # Chart
+        st.subheader(f"Distribusi: {pilih_tempat}")
         order_kategori = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang', '0', 'tidak ada data']
         counts = df_filtered['kuadran_kinerja'].astype(str).str.lower().value_counts().reindex(order_kategori, fill_value=0).reset_index()
         counts.columns = ['Kuadran', 'Total']
@@ -79,6 +85,9 @@ if pilih_tempat != "-- Pilih --":
         fig.update_layout(showlegend=False, margin=dict(t=10, b=10, l=10, r=10))
         st.plotly_chart(fig, use_container_width=True)
         
+        # Legend
+        st.markdown('<div class="legend-box">🔵 Sangat Baik | 🟢 Baik | 🟡 Perbaikan<br>🟠 Kurang | 🔴 Sangat Kurang | 🔘 Blank</div>', unsafe_allow_html=True)
+        
         # Cards
         s = df_filtered['status_penilaian'].astype(str).str.lower().value_counts()
         c1, c2, c3 = st.columns(3)
@@ -86,8 +95,12 @@ if pilih_tempat != "-- Pilih --":
         c2.markdown(f'<div class="metro-card" style="background:#fd7e14"><span>BELUM</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
         c3.markdown(f'<div class="metro-card" style="background:#6c757d"><span>BLANK</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
         
+        st.write("---")
+        
         # Tabel
         st.subheader("Detail Karyawan")
         st.markdown(df_filtered[['nama', 'status_penilaian']].to_html(classes="custom-table", index=False), unsafe_allow_html=True)
     else:
-        st.warning("Data untuk unit ini kosong.")
+        st.info("Data untuk unit ini kosong.")
+else:
+    st.info("Pilih Perangkat Daerah di atas.")
