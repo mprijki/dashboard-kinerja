@@ -30,13 +30,13 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 1. Header (Pasti muncul kalau file ada di repo)
+# 1. Header
 if os.path.exists("header.png"):
     st.image("header.png")
 else:
     st.title("📊 Dashboard Kinerja")
 
-# Fungsi Data (Paginasi Asli)
+# Fungsi Data
 @st.cache_data(ttl=3600)
 def get_list_unit():
     all_units = []
@@ -94,10 +94,19 @@ if pilih_tempat != "-- Pilih --":
     # Legend Manual
     st.markdown('<div class="legend-box">🔵 Sangat Baik | 🟢 Baik | 🟡 Perbaikan<br>🟠 Kurang | 🔴 Sangat Kurang | 🔘 Blank</div>', unsafe_allow_html=True)
     
-    # Cards
+    # Cards (Fixed F-String)
     df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
     s = df_filtered['status_clean'].value_counts()
     c1, c2, c3 = st.columns(3)
     c1.markdown(f'<div class="metro-card" style="background:#28a745">SUDAH<br><h1>{s.get("sudah", 0)}</h1></div>', unsafe_allow_html=True)
     c2.markdown(f'<div class="metro-card" style="background:#fd7e14">BELUM<br><h1>{s.get("belum", 0)}</h1></div>', unsafe_allow_html=True)
-    c3.markdown(f'<div class="metro-card"
+    c3.markdown(f'<div class="metro-card" style="background:#6c757d">BLANK<br><h1>{s.get("tidak ada data", 0)}</h1></div>', unsafe_allow_html=True)
+    
+    st.write("---")
+    
+    # Tabel
+    st.subheader("Detail Karyawan")
+    df_tampil = df_filtered[['nama', 'status_penilaian']].dropna(subset=['nama'])
+    st.markdown(df_tampil.to_html(classes="custom-table", index=False, header=["NAMA", "STATUS PENILAIAN"]), unsafe_allow_html=True)
+else:
+    st.info("Pilih Perangkat Daerah di atas.")
