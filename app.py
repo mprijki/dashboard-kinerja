@@ -8,7 +8,7 @@ key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="wide")
-st.title("📊 Dashboard Kinerja Triwulan - 2026")
+st.title("Dashboard Kinerja Triwulan - 2026")
 
 # 1. Fungsi buat narik DAFTAR unit kerja saja (biar enteng)
 @st.cache_data
@@ -56,7 +56,7 @@ if pilih_tempat != "-- Pilih --":
     
     # Detail Tabel
     st.subheader("Detail Karyawan")
-    kolom_tampil = ['nama', 'unit_kerja', 'status_penilaian']
+    kolom_tampil = ['nama', 'unit_kerja2', 'status_penilaian']
     st.dataframe(df_filtered[kolom_tampil], use_container_width=True)
     
 else:
