@@ -84,7 +84,7 @@ if pilih_tempat != "-- Pilih --":
         st.write("---")
 
         # Chart
-        st.subheader(f"Distribusi: {pilih_tempat}")
+        st.subheader(f"Penilaian Triwulan: {pilih_tempat}")
         order_kategori = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang', '0', 'tidak ada data']
         counts = df_filtered['kuadran_kinerja'].astype(str).str.lower().value_counts().reindex(order_kategori, fill_value=0).reset_index()
         counts.columns = ['Kuadran', 'Total']
