@@ -12,16 +12,27 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - Rapat, Responsive, & Presisi
+# CSS Styling - Final Boss Fix
 st.markdown("""
 <style>
-    /* Ngurangin padding atas biar nempel ke atas tapi gak kepotong */
-    .block-container { padding-top: 0.5rem !important; }
+    /* 1. Ngilangin header bawaan Streamlit yang makan tempat */
+    [data-testid="stHeader"] { display: none; }
     
-    /* Header full width */
-    .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
+    /* 2. Tarik container ke atas banget */
+    .block-container { 
+        padding-top: 0rem !important; 
+        padding-bottom: 1rem !important;
+    }
     
-    /* Metro Card - Center Total */
+    /* 3. Header full width */
+    .stImage > img { 
+        width: 100% !important; 
+        height: auto !important; 
+        display: block !important; 
+        margin: 0 auto !important;
+    }
+    
+    /* 4. Metro Card */
     .metro-card { 
         padding: 10px 5px; border-radius: 12px; color: white; margin-bottom: 10px; font-weight: bold;
         display: flex; flex-direction: column; justify-content: center; align-items: center; height: 80px;
@@ -29,7 +40,7 @@ st.markdown("""
     .metro-card span { font-size: 12px; margin-bottom: 2px; }
     .metro-card b { font-size: 20px; }
     
-    /* Tabel */
+    /* 5. Tabel */
     .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
     .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; }
     .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
@@ -43,7 +54,7 @@ if os.path.exists("header.png"):
 else:
     st.title("📊 Dashboard Kinerja")
 
-# Fungsi Data
+# Fungsi Data (Sama kayak sebelumnya)
 @st.cache_data(ttl=3600)
 def get_list_unit():
     all_units = []
