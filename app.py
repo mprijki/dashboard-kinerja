@@ -11,17 +11,24 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="wide")
 
-# CSS Styling untuk UI Card Metro
+# CSS Styling Total
 st.markdown("""
 <style>
     .metro-card { padding: 20px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.2); margin-bottom: 10px; }
     .grad-sudah { background: linear-gradient(135deg, #28a745, #20c997); }
     .grad-belum { background: linear-gradient(135deg, #fd7e14, #ffc107); }
     .grad-none { background: linear-gradient(135deg, #6c757d, #adb5bd); }
+    
+    /* Styling Header Tabel Biru Muda */
+    thead tr th { background-color: #add8e6 !important; font-weight: bold !important; text-transform: uppercase !important; }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("📊 Dashboard Kinerja Triwulan - 2026")
+# 1. Header Gambar
+try:
+    st.image("header.png", width=300)
+except:
+    st.title("Kinerja Triwulan - 2026")
 
 # Fungsi Data (Paginasi)
 @st.cache_data(ttl=3600)
@@ -51,13 +58,22 @@ def get_data_by_filter(pilih_tempat):
         page += 1
     return pd.DataFrame(all_data)
 
-# Sidebar
+# Filter di Tengah (Bukan Sidebar)
 list_unit = get_list_unit()
-pilih_tempat = st.sidebar.selectbox("Pilih Perangkat Daerah:", options=["-- Pilih --"] + list_unit)
+col1, col2 = st.columns([3, 1])
+pilih_tempat = col1.selectbox("Pilih Perangkat Daerah:", options=["-- Pilih --"] + list_unit)
 
 if pilih_tempat != "-- Pilih --":
     df_filtered = get_data_by_filter(pilih_tempat)
     
+    # Tombol Download di sebelah kanan filter
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        df_filtered.to_excel(writer, index=False)
+    col2.download_button("📥 Download Excel", buffer.getvalue(), f"Data_{pilih_tempat}.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    
+    st.write("---")
+
     # 1. BAR CHART
     st.subheader(f"Distribusi Kinerja: {pilih_tempat}")
     order_kategori = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang', '0', 'tidak ada data']
@@ -70,17 +86,14 @@ if pilih_tempat != "-- Pilih --":
     
     fig = px.bar(counts, x='Kuadran', y='Total', color='Kuadran', color_discrete_map=warna_kategori)
     fig.update_layout(
-        xaxis={'categoryorder':'array', 'categoryarray':order_kategori},
+        xaxis={'showticklabels': False}, # Hapus label teks di bawah batang
         showlegend=True,
-        legend=dict(orientation="h", yanchor="top", y=-0.3, xanchor="center", x=0.5),
+        legend=dict(orientation="h", yanchor="top", y=-0.2, xanchor="center", x=0.5),
         margin=dict(t=30, b=50, l=0, r=0)
     )
     st.plotly_chart(fig, use_container_width=True)
     
-    st.write("---")
-    
     # 2. Kartu Gradien
-    st.subheader("Status Penilaian")
     df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
     s = df_filtered['status_clean'].value_counts()
     
@@ -91,16 +104,10 @@ if pilih_tempat != "-- Pilih --":
     
     st.write("---")
     
-    # 3. Tabel Detail (Tanpa Kuadran & Bersih)
+    # 3. Tabel Detail (Kapital, Bold, Tanpa Unit Kerja)
     st.subheader("Detail Karyawan")
-    # Dropna memastikan tidak ada data kosong yang bikin header berantakan
-    df_tampil = df_filtered[['nama', 'unit_kerja', 'status_penilaian']].dropna(subset=['nama'])
-    st.dataframe(df_tampil, use_container_width=True, hide_index=True)
-    
-    # 4. Download
-    buffer = io.BytesIO()
-    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-        df_filtered.to_excel(writer, index=False)
-    st.download_button("📥 Download Data Detail (.xlsx)", buffer.getvalue(), f"Data_{pilih_tempat}.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    df_tampil = df_filtered[['nama', 'status_penilaian']].dropna(subset=['nama'])
+    df_tampil.columns = ['NAMA', 'STATUS PENILAIAN']
+    st.table(df_tampil)
 else:
-    st.info("Silakan pilih 'Perangkat Daerah' di sidebar.")
+    st.info("Silakan pilih Perangkat Daerah di atas untuk melihat data.")
