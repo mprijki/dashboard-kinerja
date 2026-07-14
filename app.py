@@ -34,7 +34,7 @@ st.markdown("""
 
 # 1. Header
 if os.path.exists("header.png"): st.image("header.png")
-else: st.title("📊 Dashboard Kinerja")
+else: st.title("Dashboard Kinerja")
 
 # Fungsi Data dengan Pagination
 @st.cache_data(ttl=3600)
@@ -79,7 +79,7 @@ if pilih_tempat != "-- Pilih --":
         buffer = io.BytesIO()
         with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
             df_tampil.to_excel(writer, index=False)
-        st.download_button("📥 Download Excel", buffer.getvalue(), f"Data_{pilih_tempat}.xlsx", use_container_width=True)
+        st.download_button("Download Excel", buffer.getvalue(), f"Data_{pilih_tempat}.xlsx", use_container_width=True)
         
         st.write("---")
 
@@ -95,7 +95,7 @@ if pilih_tempat != "-- Pilih --":
         fig.update_layout(showlegend=False, xaxis=dict(title=None, showticklabels=False), yaxis=dict(title=None), margin=dict(t=10, b=10, l=10, r=10))
         st.plotly_chart(fig, use_container_width=True)
         
-        st.markdown('<div class="legend-box">🔵 Sangat Baik | 🟢 Baik | 🟡 Perbaikan<br>🟠 Kurang | 🔴 Sangat Kurang | 🔘 Blank</div>', unsafe_allow_html=True)
+        st.markdown('<div class="legend-box">🔵 Sangat Baik | 🟢 Baik | 🟡 Perbaikan<br>🟠 Kurang | 🔴 Sangat Kurang | 🔘 Belum Penilaian</div>', unsafe_allow_html=True)
         
         # Cards - FIX: .str.lower() benerin posisi .str
         df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
@@ -103,12 +103,12 @@ if pilih_tempat != "-- Pilih --":
         c1, c2, c3 = st.columns(3)
         c1.markdown(f'<div class="metro-card" style="background:#28a745"><span>SUDAH</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
         c2.markdown(f'<div class="metro-card" style="background:#fd7e14"><span>BELUM</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
-        c3.markdown(f'<div class="metro-card" style="background:#6c757d"><span>BLANK</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
+        c3.markdown(f'<div class="metro-card" style="background:#6c757d"><span>TIDAK ADA DATA</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
         
         st.write("---")
         
         # Tabel dengan Paging 100
-        st.subheader("Detail Karyawan")
+        st.subheader("Detail Pegawai")
         page_size = 100
         total_pages = (len(df_tampil) // page_size) + 1
         page_num = st.number_input("Pilih Halaman:", min_value=1, max_value=total_pages, value=1)
