@@ -11,8 +11,14 @@ st.set_page_config(page_title="Dashboard Kinerja", layout="wide")
 st.title("Dashboard Kinerja Triwulan - 2026")
 
 @st.cache_data
-def get_data():
-    response = supabase.table("data_triwulan").select("*").range(0, 49999).execute()
+def get_data_by_filter(pilih_tempat):
+    # Kita langsung "nembak" ke Supabase buat ambil data yang spesifik
+    # Ini jauh lebih enteng daripada narik 30 ribu baris
+    response = supabase.table("data_triwulan") \
+        .select("*") \
+        .eq("unit_kerja", pilih_tempat) \
+        .execute()
+    
     return pd.DataFrame(response.data)
 
 df = get_data()
@@ -23,12 +29,14 @@ opsi_tempat = sorted(df['unit_kerja'].unique().tolist())
 pilih_tempat = st.sidebar.selectbox("Pilih Perangkat Daerah:", options=["-- Pilih --"] + opsi_tempat)
 
 # 3. Logika Tampil Data
+# Sidebar
+pilih_tempat = st.sidebar.selectbox("Pilih Tempat Kerja:", options=["-- Pilih --"] + list_tempat_kerja)
+
 if pilih_tempat != "-- Pilih --":
-    # Filter data
-    df_filtered = df[df['unit_kerja'] == pilih_tempat]
+    # Panggil fungsi baru yang narik data spesifik per tempat kerja
+    df_filtered = get_data_by_filter(pilih_tempat)
     
-    # --- BAGIAN RINGKASAN (REKAP) ---
-    st.subheader(f"Ringkasan Kinerja: {pilih_tempat}")
+    # ... lanjutin kode buat nampilin rekap dan tabel lu
     
     # Hitung total dan breakdown peringkat
     total_karyawan = len(df_filtered)
