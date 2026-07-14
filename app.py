@@ -61,9 +61,9 @@ if pilih_tempat != "-- Pilih --":
     s = df_filtered['status_clean'].value_counts()
     
     c1, c2, c3 = st.columns(3)
-    c1.metric("Sudah", s.get('SUDAH', 0))
-    c2.metric("Belum", s.get('BELUM', 0))
-    c3.metric("Tidak Ada Data", s.get('TIDAK ADA DATA', 0))
+    c1.metric("Sudah", s.get('sudah', 0))
+    c2.metric("Belum", s.get('belum', 0))
+    c3.metric("Tidak Ada Data", s.get('tidak ada data', 0))
     
     st.write("---")
     
