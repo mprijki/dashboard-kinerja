@@ -25,7 +25,11 @@ st.markdown("""
     }
     
     /* 3. Mencegah Keyboard muncul di Selectbox */
-    [data-baseweb="select"] input { pointer-events: none !important; }
+    [data-baseweb="select"] input { 
+    pointer-events: none !important; 
+    caret-color: transparent !important; 
+    user-select: none !important; 
+    }
     
     /* 4. Header full width */
     .stImage > img { 
