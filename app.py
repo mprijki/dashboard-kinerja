@@ -11,7 +11,7 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="wide")
 
-# CSS Styling Total & Responsive
+# CSS Styling - Dipaksa ke Tengah & Bold
 st.markdown("""
 <style>
     .metro-card { padding: 15px; border-radius: 10px; color: white; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 10px; }
@@ -19,23 +19,28 @@ st.markdown("""
     .grad-belum { background: linear-gradient(135deg, #fd7e14, #ffc107); }
     .grad-none { background: linear-gradient(135deg, #6c757d, #adb5bd); }
     
-    /* Header Tabel Bold & Rata Tengah */
+    /* Header Tabel: Bold & Rata Tengah */
     .stDataFrame thead tr th { 
         text-align: center !important; 
-        font-weight: bold !important; 
+        font-weight: 900 !important; 
         background-color: #add8e6 !important; 
         color: black !important;
+        vertical-align: middle !important;
     }
-    /* Biar isi tabel rata tengah juga */
     .stDataFrame tbody td { text-align: center !important; }
+    
+    /* Center Header Gambar */
+    .header-container { display: flex; justify-content: center; margin-bottom: 20px; }
 </style>
 """, unsafe_allow_html=True)
 
-# 1. Header Gambar
+# Header Gambar dengan Container
+st.markdown('<div class="header-container">', unsafe_allow_html=True)
 try:
-    st.image("header.png", width=250)
+    st.image("header.png", width=300)
 except:
     st.title("📊 Dashboard Kinerja Triwulan - 2026")
+st.markdown('</div>', unsafe_allow_html=True)
 
 # Fungsi Data (Paginasi Asli)
 @st.cache_data(ttl=3600)
@@ -82,7 +87,7 @@ if pilih_tempat != "-- Pilih --":
     st.write("---")
 
     # 1. BAR CHART
-    st.subheader(f"Distribusi Kinerja: {pilih_tempat}")
+    st.subheader(f"Distribusi: {pilih_tempat}")
     order_kategori = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang', '0', 'tidak ada data']
     warna_kategori = {
         'sangat baik': '#007bff', 'baik': '#28a745', 'butuh perbaikan': '#d4ac0d',
@@ -92,7 +97,19 @@ if pilih_tempat != "-- Pilih --":
     counts.columns = ['Kuadran', 'Total']
     
     fig = px.bar(counts, x='Kuadran', y='Total', color='Kuadran', color_discrete_map=warna_kategori)
-    fig.update_layout(xaxis={'showticklabels': False}, showlegend=True, legend=dict(orientation="h", yanchor="top", y=-0.2, xanchor="center", x=0.5), margin=dict(t=30, b=50, l=0, r=0))
+    fig.update_layout(
+        xaxis={'showticklabels': False}, 
+        showlegend=True, 
+        legend=dict(
+            orientation="h", 
+            yanchor="top", 
+            y=-0.3, # Agak diturunin biar nggak tumpuk
+            xanchor="center", 
+            x=0.5,
+            font=dict(size=10) # Perkecil font legend biar nggak berantakan di HP
+        ), 
+        margin=dict(t=20, b=80, l=0, r=0)
+    )
     st.plotly_chart(fig, use_container_width=True)
     
     # 2. Kartu
@@ -105,11 +122,10 @@ if pilih_tempat != "-- Pilih --":
     
     st.write("---")
     
-    # 3. Tabel Responsive
+    # 3. Tabel Detail
     st.subheader("Detail Karyawan")
     df_tampil = df_filtered[['nama', 'status_penilaian']].dropna(subset=['nama'])
     df_tampil.columns = ['NAMA', 'STATUS PENILAIAN']
-    # Pake st.dataframe biar responsif di HP
     st.dataframe(df_tampil, use_container_width=True, hide_index=True)
 
 else:
