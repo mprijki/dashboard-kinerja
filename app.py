@@ -12,7 +12,7 @@ st.title("Dashboard Kinerja Triwulan - 2026")
 
 @st.cache_data
 def get_data():
-    response = supabase.table("data_triwulan").select("*").execute()
+    response = supabase.table("data_triwulan").select("*").range(0, 49999).execute()
     return pd.DataFrame(response.data)
 
 df = get_data()
@@ -44,6 +44,8 @@ if pilih_tempat != "-- Pilih --":
     peringkat_list = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang']
     for i, p in enumerate(peringkat_list):
         cols[i].metric(p.title(), rekap[p])
+
+    st.sidebar.write(f"Total baris di database: {len(df)}")
     
     st.write("---")
     
