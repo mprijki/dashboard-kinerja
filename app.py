@@ -17,10 +17,11 @@ st.markdown("""
     [data-testid="stHeader"] { display: none; }
     .block-container { padding-top: 0.5rem !important; }
     
-    /* MODIFIKASI RADIO JADI TOMBOL KOTAK (Biar gak titik-titik) */
-    div[role="radiogroup"] { display: flex; flex-wrap: wrap; gap: 5px; }
-    div[role="radiogroup"] label { 
-        background: #f0f2f6; padding: 8px 12px; border-radius: 8px; border: 1px solid #ddd;
+    /* Trik Overlay: Nutupin input selectbox biar kibot gak kepancing */
+    .stSelectbox { position: relative; }
+    .stSelectbox::after {
+        content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: transparent; z-index: 999;
     }
     
     .stImage > img { width: 100% !important; display: block !important; margin: 0 auto !important; }
@@ -38,7 +39,7 @@ st.markdown("""
 if os.path.exists("header.png"): st.image("header.png")
 else: st.title("📊 Dashboard Kinerja")
 
-# Fungsi Data (dengan pengaman kalau data kosong)
+# Fungsi Data (dengan proteksi)
 @st.cache_data(ttl=3600)
 def get_list_unit():
     try:
@@ -48,14 +49,16 @@ def get_list_unit():
 
 @st.cache_data(ttl=3600)
 def get_data_by_filter(pilih_tempat):
-    response = supabase.table("data_triwulan").select("*").eq("unit_kerja", pilih_tempat).execute()
-    return pd.DataFrame(response.data)
+    try:
+        response = supabase.table("data_triwulan").select("*").eq("unit_kerja", pilih_tempat).execute()
+        return pd.DataFrame(response.data)
+    except: return pd.DataFrame()
 
-# Filter: Pake Radio Button (Dijamin gak bakal muncul kibot)
+# Filter: Pake Selectbox Biasa tapi pake Trik Overlay di CSS
 list_unit = get_list_unit()
-pilih_tempat = st.radio("Pilih Perangkat Daerah:", list_unit, label_visibility="collapsed")
+pilih_tempat = st.selectbox("Pilih Perangkat Daerah:", ["-- Pilih --"] + list_unit)
 
-if pilih_tempat:
+if pilih_tempat != "-- Pilih --":
     df_filtered = get_data_by_filter(pilih_tempat)
     
     if not df_filtered.empty and 'kuadran_kinerja' in df_filtered.columns:
