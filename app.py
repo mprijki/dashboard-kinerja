@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px
+import io
 from supabase import create_client
 
 # Setup Koneksi
@@ -8,10 +10,21 @@ key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="wide")
-st.title("Dashboard Kinerja Triwulan - 2026")
 
-# 1. Fungsi narik DAFTAR unit kerja (looping 30rb data)
-@st.cache_data
+# CSS Styling untuk UI Card Metro
+st.markdown("""
+<style>
+    .metro-card { padding: 20px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.2); margin-bottom: 10px; }
+    .grad-sudah { background: linear-gradient(135deg, #28a745, #20c997); }
+    .grad-belum { background: linear-gradient(135deg, #fd7e14, #ffc107); }
+    .grad-none { background: linear-gradient(135deg, #6c757d, #adb5bd); }
+</style>
+""", unsafe_allow_html=True)
+
+st.title("📊 Dashboard Kinerja Triwulan - 2026")
+
+# Fungsi Data (Paginasi)
+@st.cache_data(ttl=3600)
 def get_list_unit():
     all_units = []
     page_size = 1000
@@ -25,8 +38,7 @@ def get_list_unit():
         page += 1
     return sorted(list(set(all_units)))
 
-# 2. Fungsi narik data spesifik per unit (looping buat yang >1000 pegawai)
-@st.cache_data
+@st.cache_data(ttl=3600)
 def get_data_by_filter(pilih_tempat):
     all_data = []
     page_size = 1000
@@ -40,47 +52,47 @@ def get_data_by_filter(pilih_tempat):
     return pd.DataFrame(all_data)
 
 # Sidebar
-st.sidebar.header("Filter Data")
 list_unit = get_list_unit()
 pilih_tempat = st.sidebar.selectbox("Pilih Perangkat Daerah:", options=["-- Pilih --"] + list_unit)
 
-# 3. Logika Tampil Data
 if pilih_tempat != "-- Pilih --":
     df_filtered = get_data_by_filter(pilih_tempat)
     
-    st.subheader(f"Ringkasan Kinerja: {pilih_tempat}")
+    # 1. Donut Chart
+    st.subheader(f"Distribusi Kuadran Kinerja: {pilih_tempat}")
+    kuadran_counts = df_filtered['kuadran_kinerja'].value_counts().reset_index()
+    kuadran_counts.columns = ['Kuadran', 'Total']
+    fig = px.pie(kuadran_counts, values='Total', names='Kuadran', hole=0.6)
+    st.plotly_chart(fig, use_container_width=True)
     
-    # Metrik Total
-    total_karyawan = len(df_filtered)
-    st.metric("Total Pegawai", total_karyawan)
     st.write("---")
     
-    # Status Penilaian (Case-insensitive)
+    # 2. Kartu Gradien
     st.subheader("Status Penilaian")
     df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
     s = df_filtered['status_clean'].value_counts()
     
     c1, c2, c3 = st.columns(3)
-    c1.metric("Sudah", s.get('sudah', 0))
-    c2.metric("Belum", s.get('belum', 0))
-    c3.metric("Tidak Ada Data", s.get('tidak ada data', 0))
+    c1.markdown(f'<div class="metro-card grad-sudah"><h3>SUDAH</h3><h1>{s.get("sudah", 0)}</h1></div>', unsafe_allow_html=True)
+    c2.markdown(f'<div class="metro-card grad-belum"><h3>BELUM</h3><h1>{s.get("belum", 0)}</h1></div>', unsafe_allow_html=True)
+    c3.markdown(f'<div class="metro-card grad-none"><h3>TIDAK ADA</h3><h1>{s.get("tidak ada data", 0)}</h1></div>', unsafe_allow_html=True)
     
     st.write("---")
     
-    # Distribusi Kinerja
-    st.subheader("Distribusi Kinerja")
-    k = df_filtered['kuadran_kinerja'].value_counts().reindex(
-        ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang'], fill_value=0
-    )
-    cols = st.columns(5)
-    labels = ['Sangat Baik', 'Baik', 'Butuh Perbaikan', 'Kurang', 'Sangat Kurang']
-    for i, col_name in enumerate(['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang']):
-        cols[i].metric(labels[i], k[col_name])
-
-    st.write("---")
-    
-    # Detail Tabel
+    # 3. Tabel Detail
     st.subheader("Detail Karyawan")
-    st.dataframe(df_filtered[['nama', 'unit_kerja', 'status_penilaian']], use_container_width=True)
+    st.dataframe(df_filtered[['nama', 'unit_kerja', 'status_penilaian', 'kuadran_kinerja']], use_container_width=True)
+    
+    # 4. Download Excel (.xlsx)
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        df_filtered.to_excel(writer, index=False)
+    
+    st.download_button(
+        label="📥 Download Data Detail (.xlsx)",
+        data=buffer.getvalue(),
+        file_name=f"Data_{pilih_tempat}.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 else:
-    st.info("Silakan pilih 'Perangkat Daerah' di sidebar untuk mulai melihat data.")
+    st.info("Silakan pilih 'Perangkat Daerah' di sidebar.")
