@@ -3,7 +3,6 @@ import pandas as pd
 import plotly.express as px
 import io
 import os
-import bcrypt
 from supabase import create_client
 
 # Setup Koneksi
@@ -11,35 +10,6 @@ url = st.secrets["SUPABASE_URL"]
 key = st.secrets["SUPABASE_KEY"]
 supabase = create_client(url, key)
 
-# --- SISTEM LOGIN ---
-if 'logged_in' not in st.session_state:
-    st.session_state.logged_in = False
-
-def check_password(nip, input_pw):
-    # Ambil hash dari Supabase
-    response = supabase.table("users_login").select("password_hash").eq("nip", nip).execute()
-    if response.data:
-        stored_hash = response.data[0]['password_hash']
-        return bcrypt.checkpw(input_pw.encode('utf-8'), stored_hash.encode('utf-8'))
-    return False
-
-def login_form():
-    st.title("🔒 Login Dashboard")
-    nip_input = st.text_input("NIP")
-    pw_input = st.text_input("Password", type="password")
-    if st.button("Masuk"):
-        if check_password(nip_input, pw_input):
-            st.session_state.logged_in = True
-            st.rerun()
-        else:
-            st.error("NIP atau Password salah!")
-    st.stop()
-
-# Jika belum login, tampilkan form login
-if not st.session_state.logged_in:
-    login_form()
-
-# --- DASHBOARD UTAMA ---
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
 # CSS Styling
@@ -62,17 +32,11 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 1. Header & Logout
-col_head, col_out = st.columns([4, 1])
-with col_head:
-    if os.path.exists("header.png"): st.image("header.png")
-    else: st.title("Dashboard Kinerja")
-with col_out:
-    if st.button("Logout"):
-        st.session_state.logged_in = False
-        st.rerun()
+# 1. Header
+if os.path.exists("header.png"): st.image("header.png")
+else: st.title("Dashboard Kinerja")
 
-# Fungsi Data
+# Fungsi Data dengan Pagination
 @st.cache_data(ttl=3600)
 def get_list_unit():
     all_units = []
@@ -111,6 +75,7 @@ if pilih_tempat != "-- Pilih --":
         df_tampil = df_filtered[['nama', 'status_penilaian']].copy()
         df_tampil.columns = ["NAMA", "STATUS PENILAIAN"]
         
+        # Download
         buffer = io.BytesIO()
         with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
             df_tampil.to_excel(writer, index=False)
@@ -120,19 +85,19 @@ if pilih_tempat != "-- Pilih --":
 
         # Chart
         st.subheader(f"Penilaian Triwulan: {pilih_tempat}")
-        order_kategori = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang', '0', 'tidak ada data', 'nan']
+        order_kategori = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang', '0', 'tidak ada data']
         counts = df_filtered['kuadran_kinerja'].astype(str).str.lower().value_counts().reindex(order_kategori, fill_value=0).reset_index()
         counts.columns = ['Kuadran', 'Total']
         
         fig = px.bar(counts, x='Kuadran', y='Total', color='Kuadran', 
                      color_discrete_map={'sangat baik': '#007bff', 'baik': '#28a745', 'butuh perbaikan': '#d4ac0d', 
-                                         'kurang': '#fd7e14', 'sangat kurang': '#f44336', '0': '#566573', 'tidak ada data': '#8b0000', 'nan': '#808080'})
+                                         'kurang': '#fd7e14', 'sangat kurang': '#f44336', '0': '#566573', 'tidak ada data': '#8b0000'})
         fig.update_layout(showlegend=False, xaxis=dict(title=None, showticklabels=False), yaxis=dict(title=None), margin=dict(t=10, b=10, l=10, r=10))
         st.plotly_chart(fig, use_container_width=True)
         
         st.markdown('<div class="legend-box">🔵 Sangat Baik | 🟢 Baik | 🟡 Perbaikan<br>🟠 Kurang | 🔴 Sangat Kurang | 🔘 Belum Penilaian</div>', unsafe_allow_html=True)
         
-        # Cards
+        # Cards - FIX: .str.lower() benerin posisi .str
         df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
         s = df_filtered['status_clean'].value_counts()
         c1, c2, c3 = st.columns(3)
@@ -142,7 +107,7 @@ if pilih_tempat != "-- Pilih --":
         
         st.write("---")
         
-        # Tabel
+        # Tabel dengan Paging 100
         st.subheader("Detail Pegawai")
         page_size = 100
         total_pages = (len(df_tampil) // page_size) + 1
@@ -151,6 +116,7 @@ if pilih_tempat != "-- Pilih --":
         df_page = df_tampil.iloc[(page_num-1)*page_size : page_num*page_size]
         st.markdown(df_page.to_html(classes="custom-table", index=False), unsafe_allow_html=True)
         st.caption(f"Halaman {page_num} dari {total_pages}")
+
     else:
         st.info("Data tidak ditemukan atau kosong.")
 else:
