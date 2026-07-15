@@ -108,14 +108,21 @@ if pilih_tempat != "-- Pilih --":
         st.write("---")
         
         # Tabel dengan Paging 100
+        # --- Tabel dengan Paging 100 ---
         st.subheader("Detail Pegawai")
         page_size = 100
         total_pages = (len(df_tampil) // page_size) + 1
-        page_num = st.number_input("Pilih Halaman:", min_value=1, max_value=total_pages, value=1)
+        
+        # Pindah navigasi & info ke kolom biar rapi
+        col_nav1, col_nav2 = st.columns([1, 2])
+        with col_nav1:
+            page_num = st.number_input("Pilih Halaman:", min_value=1, max_value=total_pages, value=1)
+        with col_nav2:
+            # Info halaman ditaruh di sebelah input nomor halaman
+            st.markdown(f"<br>Halaman **{page_num}** dari **{total_pages}**", unsafe_allow_html=True)
         
         df_page = df_tampil.iloc[(page_num-1)*page_size : page_num*page_size]
         st.markdown(df_page.to_html(classes="custom-table", index=False), unsafe_allow_html=True)
-        st.caption(f"Halaman {page_num} dari {total_pages}")
 
     else:
         st.info("Data tidak ditemukan atau kosong.")
