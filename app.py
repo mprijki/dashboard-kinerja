@@ -15,9 +15,9 @@ supabase = create_client(url, key)
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
-def check_password(nik, input_pw):
+def check_password(nip, input_pw):
     # Ambil hash dari Supabase
-    response = supabase.table("users_login").select("password_hash").eq("nik", nik).execute()
+    response = supabase.table("users_login").select("password_hash").eq("nip", nip).execute()
     if response.data:
         stored_hash = response.data[0]['password_hash']
         return bcrypt.checkpw(input_pw.encode('utf-8'), stored_hash.encode('utf-8'))
@@ -25,14 +25,14 @@ def check_password(nik, input_pw):
 
 def login_form():
     st.title("🔒 Login Dashboard")
-    nik_input = st.text_input("NIK")
+    nip_input = st.text_input("NIP")
     pw_input = st.text_input("Password", type="password")
     if st.button("Masuk"):
-        if check_password(nik_input, pw_input):
+        if check_password(nip_input, pw_input):
             st.session_state.logged_in = True
             st.rerun()
         else:
-            st.error("NIK atau Password salah!")
+            st.error("NIP atau Password salah!")
     st.stop()
 
 # Jika belum login, tampilkan form login
