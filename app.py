@@ -34,19 +34,6 @@ def login_form():
         else:
             st.error("NIP atau Password salah!")
     st.stop()
-def check_password(nip, input_pw):
-    print(f"Lagi nyari NIP: {nip}") # Debug log
-    response = supabase.table("users_login").select("password_hash").eq("nip", nip).execute()
-    print(f"Hasil DB: {response.data}") # Debug log
-    
-    if response.data:
-        stored_hash = response.data[0]['password_hash']
-        is_match = bcrypt.checkpw(input_pw.encode('utf-8'), stored_hash.encode('utf-8'))
-        print(f"Password cocok?: {is_match}")
-        return is_match
-    else:
-        print("NIP tidak ditemukan di DB!")
-    return False
 
 # Jika belum login, tampilkan form login
 if not st.session_state.logged_in:
