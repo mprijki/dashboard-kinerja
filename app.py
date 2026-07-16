@@ -44,7 +44,7 @@ if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False
 
 if not st.session_state["logged_in"]:
-    st.title("🔐 Login Dashboard")
+    st.title("🔐 PERMISI DULU JANGAN ASAL NYELONONG")
     
     # Bungkus pakai st.form biar Enter langsung login
     with st.form("login_form"):
