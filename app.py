@@ -13,36 +13,27 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - Pake cara paling aman
+# CSS Styling - Pake container tombol biar nggak ilang
 st.markdown("""
 <style>
     [data-testid="stHeader"] { display: none; }
-    .block-container { padding-top: 1rem !important; }
     
-    /* Tombol jadi bentuk kartu dengan efek hover */
+    /* Tombolnya kita bikin transparan biar style kita yang keluar */
     div.stButton > button {
         height: 80px !important;
         width: 100% !important;
         border-radius: 12px !important;
         font-weight: bold !important;
         border: none !important;
-        transition: all 0.3s ease !important;
+        transition: 0.3s !important;
         color: white !important;
     }
+    
+    /* Efek hover biar ada respon */
     div.stButton > button:hover {
         transform: scale(1.05);
         filter: brightness(1.2);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
-    
-    /* Warna spesifik tiap kartu */
-    button[key="btn_sudah"] { background-color: #399abf !important; }
-    button[key="btn_belum"] { background-color: #e7465d !important; }
-    button[key="btn_tidak"] { background-color: #78328b !important; }
-
-    .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-    .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; }
-    .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -93,14 +84,6 @@ else:
         df_filtered = get_data_by_filter(pilih_tempat)
         if not df_filtered.empty and 'kuadran_kinerja' in df_filtered.columns:
             
-            # --- DOWNLOADER ---
-            df_tampil = df_filtered[['nama', 'status_penilaian']]
-            buffer = io.BytesIO()
-            with pd.ExcelWriter(buffer, engine='openpyxl') as writer: df_tampil.to_excel(writer, index=False)
-            st.download_button("Download Excel", buffer.getvalue(), f"Data_{pilih_tempat}.xlsx", use_container_width=True)
-            
-            st.write("---")
-            
             # --- TOMBOL KARTU ---
             df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
             s = df_filtered['status_clean'].value_counts()
@@ -108,14 +91,21 @@ else:
             c1, c2, c3 = st.columns(3)
             def toggle(val): st.session_state["active_filter"] = None if st.session_state["active_filter"] == val else val
             
-            if c1.button(f"SUDAH\n{s.get('sudah', 0)}", key="btn_sudah"): toggle("sudah")
-            if c2.button(f"BELUM\n{s.get('belum', 0)}", key="btn_belum"): toggle("belum")
-            if c3.button(f"TIDAK ADA\n{s.get('tidak ada data', 0)}", key="btn_tidak"): toggle("tidak ada data")
+            # Kita injek warna langsung di sini supaya nggak ilang (Inline Style)
+            if c1.button(f"SUDAH\n{s.get('sudah', 0)}"): toggle("sudah")
+            st.markdown("""<style>div.stButton > button:nth-child(1) { background-color: #399abf !important; }</style>""", unsafe_allow_html=True)
+            
+            if c2.button(f"BELUM\n{s.get('belum', 0)}"): toggle("belum")
+            st.markdown("""<style>div.stButton > button:nth-child(2) { background-color: #e7465d !important; }</style>""", unsafe_allow_html=True)
+            
+            if c3.button(f"TIDAK ADA\n{s.get('tidak ada data', 0)}"): toggle("tidak ada data")
+            st.markdown("""<style>div.stButton > button:nth-child(3) { background-color: #78328b !important; }</style>""", unsafe_allow_html=True)
             
             # --- LOGIKA TABEL ---
             if st.session_state["active_filter"]:
+                st.write("---")
                 st.subheader(f"DETAIL: {st.session_state['active_filter'].upper()}")
                 df_sub = df_filtered[df_filtered['status_clean'] == st.session_state["active_filter"]][['nama', 'status_penilaian']]
-                st.markdown(df_sub.to_html(classes="custom-table", index=False), unsafe_allow_html=True)
+                st.table(df_sub) # Pake st.table biar lebih simpel dan gak eror pas render HTML
         else: st.info("Data tidak ditemukan.")
     else: st.info("Pilih Perangkat Daerah di atas.")
