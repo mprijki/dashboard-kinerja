@@ -20,13 +20,15 @@ st.markdown("""
     .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; max-width: 100% !important; }
     
     /* CSS BIAR KOLOM JEJER 3 DI MOBILE */
-    [data-testid="column"] {
-        width: 33.33% !important;
-        flex: 1 1 33.33% !important;
-        min-width: 33.33% !important;
-    }
     [data-testid="stHorizontalBlock"] {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
         gap: 5px !important;
+    }
+    [data-testid="column"] {
+        flex: 1 1 33% !important;
+        max-width: 33% !important;
     }
 
     .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
