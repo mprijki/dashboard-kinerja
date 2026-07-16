@@ -19,10 +19,24 @@ st.markdown("""
     [data-testid="stHeader"] { display: none; }
     .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; }
     .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
+    
+    /* Layout Kartu Jejer 3 */
+    [data-testid="column"] { flex: 1 1 30% !important; min-width: 100px !important; }
+    
     .metro-card { 
         padding: 10px 5px; border-radius: 12px; color: white; margin-bottom: 10px; font-weight: bold;
         display: flex; flex-direction: column; justify-content: center; align-items: center; height: 80px;
+        transition: all 0.3s ease;
     }
+    
+    /* Efek Hover */
+    .hover-target:hover {
+        filter: brightness(1.2);
+        cursor: pointer;
+        transform: scale(1.05);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
     .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
     .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; text-transform: uppercase !important; }
     .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
@@ -115,16 +129,10 @@ else:
             fig.update_layout(showlegend=False, xaxis=dict(title=None, showticklabels=False), yaxis=dict(title=None), margin=dict(t=10, b=10, l=10, r=10))
             st.plotly_chart(fig, use_container_width=True)
             
-            # --- LEGEND KOTAK ---
             st.markdown("""
             <div class="legend-box" style="line-height: 2;">
-                <span style="color:#399abf">■</span> Sangat Baik | 
-                <span style="color:#78c41b">■</span> Baik | 
-                <span style="color:#f2ed31">■</span> Perbaikan<br>
-                <span style="color:#f28530">■</span> Kurang | 
-                <span style="color:#eb462e">■</span> Sangat Kurang | 
-                <span style="color:#e7465d">■</span> belum ada nilai | 
-                <span style="color:#78328b">■</span> Tidak Ada Data
+                <span style="color:#399abf">■</span> Sangat Baik | <span style="color:#78c41b">■</span> Baik | <span style="color:#f2ed31">■</span> Perbaikan<br>
+                <span style="color:#f28530">■</span> Kurang | <span style="color:#eb462e">■</span> Sangat Kurang | <span style="color:#e7465d">■</span> belum ada nilai | <span style="color:#78328b">■</span> Tidak Ada Data
             </div>
             """, unsafe_allow_html=True)
             
@@ -135,14 +143,17 @@ else:
             c1, c2, c3 = st.columns(3)
             def toggle_filter(val): st.session_state["active_filter"] = None if st.session_state["active_filter"] == val else val
             
+            # Kartu 1
             if c1.button(" ", key="btn_sudah", use_container_width=True): toggle_filter("sudah")
-            c1.markdown(f'<div class="metro-card" style="background:#399abf; margin-top:-65px; pointer-events:none"><span>SUDAH DINILAI</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
+            c1.markdown(f'<div class="metro-card hover-target" style="background:#399abf; margin-top:-65px; pointer-events:none"><span>SUDAH DINILAI</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
             
+            # Kartu 2
             if c2.button(" ", key="btn_belum", use_container_width=True): toggle_filter("belum")
-            c2.markdown(f'<div class="metro-card" style="background:#e7465d; margin-top:-65px; pointer-events:none"><span>BELUM DINILAI</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
+            c2.markdown(f'<div class="metro-card hover-target" style="background:#e7465d; margin-top:-65px; pointer-events:none"><span>BELUM DINILAI</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
             
+            # Kartu 3
             if c3.button(" ", key="btn_tidak", use_container_width=True): toggle_filter("tidak ada data")
-            c3.markdown(f'<div class="metro-card" style="background:#78328b; margin-top:-65px; pointer-events:none"><span>TIDAK ADA DATA PENILAIAN</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
+            c3.markdown(f'<div class="metro-card hover-target" style="background:#78328b; margin-top:-65px; pointer-events:none"><span>TIDAK ADA DATA PENILAIAN</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
             
             # --- LOGIKA TABEL ---
             if st.session_state["active_filter"]:
