@@ -62,6 +62,7 @@ else:
         st.session_state["active_filter"] = None
         st.rerun()
 
+    @st.cache_data(ttl=3600)
     def get_list_unit():
         all_units = []
         page_size = 1000
@@ -75,6 +76,7 @@ else:
             page += 1
         return sorted(list(set(all_units)))
 
+    @st.cache_data(ttl=3600)
     def get_data_by_filter(pilih_tempat):
         all_data = []
         page_size = 1000
@@ -151,7 +153,7 @@ else:
                 
                 page_size = 100
                 total_data = len(df_sub)
-                total_pages = (total_data // page_size) + (1 if total_data % page_size != 0 else 0)
+                total_pages = max(1, (total_data // page_size) + (1 if total_data % page_size != 0 else 0))
                 
                 col_nav1, col_nav2 = st.columns([1, 2])
                 with col_nav1:
