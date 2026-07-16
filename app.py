@@ -13,7 +13,7 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - Sudah dibersihkan total biar gak ada sisa border tombol
+# CSS Styling - Final & Fixed
 CARD_H = 55 
 
 st.markdown(f"""
@@ -21,12 +21,14 @@ st.markdown(f"""
     [data-testid="stHeader"] {{ display: none; }}
     .block-container {{ padding-top: 0.5rem !important; padding-bottom: 1rem !important; }}
     
-    /* Tombol Logout & Download Tetap Berwarna */
+    /* 1. Tombol Logout (Tetap Merah) */
     div.stButton > button[key="Logout"] {{ background-color: #ff4b4b !important; color: white !important; border: none !important; }}
+    
+    /* 2. Tombol Download (Tetap Ijo) */
     div.stDownloadButton > button {{ background-color: #28a745 !important; color: white !important; border: none !important; }}
     
-    /* Tombol Transparan di balik kartu - Dihilangkan semua efek defaultnya */
-    div.stButton > button {{ 
+    /* 3. Tombol Kartu SAJA yang dibersihkan (kecuali Logout) */
+    div.stButton > button:not([key="Logout"]) {{ 
         height: {CARD_H}px !important; 
         background: none !important; 
         border: none !important; 
@@ -34,7 +36,7 @@ st.markdown(f"""
         padding: 0 !important; 
     }}
     
-    /* Metro Card - Kartu Visual yang nutupin tombol */
+    /* Metro Card - Kartu Visual */
     .metro-card {{ 
         padding: 5px; border-radius: 10px; color: white; font-weight: bold;
         display: flex; flex-direction: column; justify-content: center; align-items: center; 
@@ -144,27 +146,4 @@ else:
             def toggle_filter(val): st.session_state["active_filter"] = None if st.session_state["active_filter"] == val else val
             
             if c1.button(" ", key="btn_sudah", on_click=toggle_filter, args=("sudah",), use_container_width=True): pass
-            c1.markdown(f'<div class="metro-card" style="background:#399abf;"><span>SUDAH</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
-            
-            if c2.button(" ", key="btn_belum", on_click=toggle_filter, args=("belum",), use_container_width=True): pass
-            c2.markdown(f'<div class="metro-card" style="background:#e7465d;"><span>BELUM</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
-            
-            if c3.button(" ", key="btn_tidak", on_click=toggle_filter, args=("tidak ada data",), use_container_width=True): pass
-            c3.markdown(f'<div class="metro-card" style="background:#78328b;"><span>TIDAK ADA</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
-            
-            if st.session_state["active_filter"]:
-                st.write("---")
-                st.subheader(f"DETAIL: {st.session_state['active_filter'].upper()}")
-                df_sub = df_filtered[df_filtered['status_clean'] == st.session_state["active_filter"]][['nama', 'status_penilaian']]
-                df_sub.columns = ["NAMA", "STATUS PENILAIAN"]
-                
-                page_size = 100
-                total_data = len(df_sub)
-                total_pages = max(1, (total_data // page_size) + (1 if total_data % page_size != 0 else 0))
-                
-                col_nav1, col_nav2 = st.columns([1, 2])
-                with col_nav1:
-                    page_num = st.number_input("Pilih Halaman:", min_value=1, max_value=total_pages, value=1)
-                with col_nav2:
-                    st.markdown(f"<br>Halaman **{page_num}** dari **{total_pages}** <br>Menampilkan data **{(page_num-1)*page_size + 1}** - **{min(page_num*page_size, total_data)}** dari **{total_data}**", unsafe_allow_html=True)
-                st.markdown(df_sub.iloc[(page_num-1)*page_size : page_num*page_size].to_html(classes="custom-table", index=False), unsafe_allow_html=True)
+            c1.markdown(f'<div class="metro-card" style="background:#399abf;"><span>SUDAH</span><b>{s.get("sudah", 0)}
