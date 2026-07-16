@@ -17,20 +17,7 @@ st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 st.markdown("""
 <style>
     [data-testid="stHeader"] { display: none; }
-    .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; max-width: 100% !important; }
-    
-    /* CSS BIAR KOLOM JEJER 3 DI MOBILE */
-    [data-testid="stHorizontalBlock"] {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        gap: 5px !important;
-    }
-    [data-testid="column"] {
-        flex: 1 1 33% !important;
-        max-width: 33% !important;
-    }
-
+    .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; }
     .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
     .metro-card { 
         padding: 10px 5px; border-radius: 12px; color: white; margin-bottom: 10px; font-weight: bold;
@@ -40,18 +27,6 @@ st.markdown("""
     .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; text-transform: uppercase !important; }
     .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
     .legend-box { font-size: 12px; margin-bottom: 15px; text-align: center; }
-
-    /* TAMBAHAN BIAR GAK OFFSET DI MOBILE */
-    @media (max-width: 500px) {
-        .metro-card { 
-            height: 60px !important; 
-            padding: 2px !important; 
-            font-size: 9px !important; 
-        }
-        .metro-card b { 
-            font-size: 12px !important; 
-        }
-    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -168,29 +143,21 @@ else:
             c3.markdown(f'<div class="metro-card" style="background:#78328b; margin-top:-65px; pointer-events:none"><span>TIDAK ADA DATA PENILAIAN</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
             
             # --- LOGIKA TABEL ---
-            # --- LOGIKA TABEL ---
             if st.session_state["active_filter"]:
                 st.write("---")
                 st.subheader(f"DETAIL: {st.session_state['active_filter'].upper()}")
-                
-                # Tetap ambil struktur kolom meskipun data kosong
                 df_sub = df_filtered[df_filtered['status_clean'] == st.session_state["active_filter"]][['nama', 'status_penilaian']]
                 df_sub.columns = ["NAMA", "STATUS PENILAIAN"]
                 
                 page_size = 100
                 total_data = len(df_sub)
-                total_pages = max(1, (total_data // page_size) + (1 if total_data % page_size != 0 else 0))
+                total_pages = (total_data // page_size) + (1 if total_data % page_size != 0 else 0)
                 
                 col_nav1, col_nav2 = st.columns([1, 2])
                 with col_nav1:
                     page_num = st.number_input("Pilih Halaman:", min_value=1, max_value=total_pages, value=1)
                 with col_nav2:
-                    if total_data > 0:
-                        st.markdown(f"<br>Halaman **{page_num}** dari **{total_pages}** <br>Menampilkan data **{(page_num-1)*page_size + 1}** - **{min(page_num*page_size, total_data)}** dari **{total_data}**", unsafe_allow_html=True)
-                    else:
-                        st.markdown("<br>Data tidak tersedia.", unsafe_allow_html=True)
-                
-                # Tetap render tabel (kalau kosong dia cuma munculin header saja)
-                tabel_html = df_sub.iloc[(page_num-1)*page_size : page_num*page_size].to_html(classes="custom-table", index=False)
-                st.markdown(tabel_html, unsafe_allow_html=True)
+                    st.markdown(f"<br>Halaman **{page_num}** dari **{total_pages}** <br>Menampilkan data **{(page_num-1)*page_size + 1}** - **{min(page_num*page_size, total_data)}** dari **{total_data}**", unsafe_allow_html=True)
+                st.markdown(df_sub.iloc[(page_num-1)*page_size : page_num*page_size].to_html(classes="custom-table", index=False), unsafe_allow_html=True)
+        else: st.info("Data tidak ditemukan atau kosong.")
     else: st.info("Pilih Perangkat Daerah di atas.")
