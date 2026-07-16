@@ -13,13 +13,13 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - Tombol jadi Kartu Data
+# CSS Styling - WARNA DIPAKSA MASUK DENGAN !IMPORTANT
 st.markdown("""
 <style>
     [data-testid="stHeader"] { display: none; }
     .block-container { padding-top: 0.5rem !important; }
     
-    /* Styling Tombol biar jadi Kartu */
+    /* Styling Dasar Tombol */
     div[data-testid="stVerticalBlock"] div[data-testid="stButton"] button {
         width: 100% !important;
         height: 85px !important;
@@ -49,14 +49,21 @@ def verify_login(nip, password):
         if bcrypt.checkpw(password.encode('utf-8'), stored_hash): return True
     return False
 
-# Fungsi buat nampilin Tombol Kartu
+# Fungsi Metrocards
 def display_metro_card(col, label, color, val, key, data_s, toggle_func):
     with col:
-        st.markdown(f"""<style>button[key="{key}"] {{ background-color: {color} !important; }}</style>""", unsafe_allow_html=True)
-        label_html = f"""<div style="text-align:center; line-height:1.2;">
+        # Inject warna khusus per tombol berdasarkan key
+        st.markdown(f"""
+            <style>
+                button[key="{key}"] {{ background-color: {color} !important; }}
+            </style>
+        """, unsafe_allow_html=True)
+        
+        label_html = f"""<div style="text-align:center; line-height:1.2; pointer-events:none;">
             <div style="font-size:11px;">{label}</div>
             <div style="font-size:20px; font-weight:900;">{data_s.get(val, 0)}</div>
         </div>"""
+        
         if st.button(label_html, key=key, use_container_width=True):
             toggle_func(val)
 
