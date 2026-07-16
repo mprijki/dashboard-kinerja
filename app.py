@@ -21,7 +21,7 @@ st.markdown("""
     .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
     .metro-card { 
         padding: 10px 5px; border-radius: 12px; color: white; margin-bottom: 10px; font-weight: bold;
-        display: flex; flex-direction: column; justify-content: center; align-items: center; height: 80px;
+        display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60px;
     }
     .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
     .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; text-transform: uppercase !important; }
@@ -136,13 +136,13 @@ else:
             def toggle_filter(val): st.session_state["active_filter"] = None if st.session_state["active_filter"] == val else val
             
             if c1.button(" ", key="btn_sudah", use_container_width=True): toggle_filter("sudah")
-            c1.markdown(f'<div class="metro-card" style="background:#399abf; margin-top:-65px; pointer-events:none"><span>SUDAH DINILAI</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
+            c1.markdown(f'<div class="metro-card" style="background:#399abf; margin-top:-45px; pointer-events:none"><span>SUDAH DINILAI</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
             
             if c2.button(" ", key="btn_belum", use_container_width=True): toggle_filter("belum")
-            c2.markdown(f'<div class="metro-card" style="background:#e7465d; margin-top:-65px; pointer-events:none"><span>BELUM DINILAI</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
+            c2.markdown(f'<div class="metro-card" style="background:#e7465d; margin-top:-45px; pointer-events:none"><span>BELUM DINILAI</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
             
             if c3.button(" ", key="btn_tidak", use_container_width=True): toggle_filter("tidak ada data")
-            c3.markdown(f'<div class="metro-card" style="background:#78328b; margin-top:-65px; pointer-events:none"><span>TIDAK ADA DATA PENILAIAN</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
+            c3.markdown(f'<div class="metro-card" style="background:#78328b; margin-top:-45px; pointer-events:none"><span>TIDAK ADA DATA PENILAIAN</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
             
             # --- LOGIKA TABEL ---
             if st.session_state["active_filter"]:
