@@ -54,14 +54,17 @@ if not st.session_state["logged_in"]:
         else:
             st.error("NIP atau Password salah, Cuk!")
 else:
-    # --- DASHBOARD KINERJA ---
-    if st.sidebar.button("Logout"):
-        st.session_state["logged_in"] = False
-        st.rerun()
+    # --- HEADER & LOGOUT (SEBARIS) ---
+    col_h1, col_h2 = st.columns([4, 1])
+    with col_h1:
+        if os.path.exists("header.png"): st.image("header.png")
+        else: st.title("LAPORAN DINAMIS KINERJA")
+    with col_h2:
+        if st.button("Logout"):
+            st.session_state["logged_in"] = False
+            st.rerun()
 
-    if os.path.exists("header.png"): st.image("header.png")
-    else: st.title("LAPORAN DINAMIS KINERJA")
-
+    # Fungsi Data
     @st.cache_data(ttl=3600)
     def get_list_unit():
         all_units = []
@@ -128,12 +131,14 @@ else:
             st.write("---")
             st.subheader("DETAIL STATUS PENILAIAN")
             page_size = 100
-            total_pages = (len(df_tampil) // page_size) + 1
+            total_data = len(df_tampil)
+            total_pages = (total_data // page_size) + (1 if total_data % page_size != 0 else 0)
+            
             col_nav1, col_nav2 = st.columns([1, 2])
             with col_nav1:
                 page_num = st.number_input("Pilih Halaman:", min_value=1, max_value=total_pages, value=1)
             with col_nav2:
-                st.markdown(f"<br>Halaman **{page_num}** dari **{total_pages}**", unsafe_allow_html=True)
+                st.markdown(f"<br>Halaman **{page_num}** dari **{total_pages}** <br>Menampilkan data **{(page_num-1)*page_size + 1}** - **{min(page_num*page_size, total_data)}** dari **{total_data}**", unsafe_allow_html=True)
             
             df_page = df_tampil.iloc[(page_num-1)*page_size : page_num*page_size]
             st.markdown(df_page.to_html(classes="custom-table", index=False), unsafe_allow_html=True)
