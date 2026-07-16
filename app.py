@@ -17,26 +17,23 @@ st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 st.markdown("""
 <style>
     [data-testid="stHeader"] { display: none; }
-    .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; }
-    .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-    .custom-table th { background-color: #add8e6; padding: 10px; text-align: center; border: 1px solid #ddd; text-transform: uppercase; }
+    .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .custom-table th { background-color: #add8e6; padding: 10px; text-align: center; border: 1px solid #ddd; }
     .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
 </style>
 """, unsafe_allow_html=True)
 
-# Auth
+# Auth & Session
 def verify_login(nip, password):
     response = supabase.table("users_login").select("password_hash").eq("nip", nip).execute()
     if response.data:
-        stored_hash = response.data[0]["password_hash"].encode('utf-8')
-        return bcrypt.checkpw(password.encode('utf-8'), stored_hash)
+        return bcrypt.checkpw(password.encode('utf-8'), response.data[0]["password_hash"].encode('utf-8'))
     return False
 
-# Session
 if "logged_in" not in st.session_state: st.session_state["logged_in"] = False
 if "filter_status" not in st.session_state: st.session_state["filter_status"] = None
 
-# App Logic
+# Logic
 if not st.session_state["logged_in"]:
     st.title("🔐 Login Dashboard")
     with st.form("login_form"):
@@ -50,32 +47,39 @@ if not st.session_state["logged_in"]:
 else:
     if os.path.exists("header.png"): st.image("header.png")
     else: st.title("LAPORAN DINAMIS KINERJA")
-
+    
     if st.button("Logout", use_container_width=True):
         st.session_state["logged_in"] = False
-        st.session_state["filter_status"] = None
         st.rerun()
 
+    # Fungsi Narik Data Total (Looping biar semua data masuk)
     @st.cache_data(ttl=3600)
-    def get_data(pilih_tempat):
-        response = supabase.table("data_triwulan").select("*").eq("unit_kerja", pilih_tempat).execute()
-        return pd.DataFrame(response.data)
+    def get_all_data(pilih_tempat):
+        all_data = []
+        page_size = 1000
+        page = 0
+        while True:
+            response = supabase.table("data_triwulan").select("*").eq("unit_kerja", pilih_tempat).range(page * page_size, (page + 1) * page_size - 1).execute()
+            if not response.data: break
+            all_data.extend(response.data)
+            if len(response.data) < page_size: break
+            page += 1
+        return pd.DataFrame(all_data)
 
     # Unit List
     units = sorted(list(set([x['unit_kerja'] for x in supabase.table("data_triwulan").select("unit_kerja").execute().data])))
     pilih_tempat = st.selectbox("Pilih Perangkat Daerah:", ["-- Pilih --"] + units)
 
     if pilih_tempat != "-- Pilih --":
-        df = get_data(pilih_tempat)
+        df = get_all_data(pilih_tempat)
         if not df.empty:
             # Download
-            df_tampil = df[['nama', 'status_penilaian']]
             buffer = io.BytesIO()
-            with pd.ExcelWriter(buffer, engine='openpyxl') as w: df_tampil.to_excel(w, index=False)
+            with pd.ExcelWriter(buffer, engine='openpyxl') as w: df.to_excel(w, index=False)
             st.download_button("Download Excel", buffer.getvalue(), f"Data_{pilih_tempat}.xlsx", use_container_width=True)
             
             st.write("---")
-            # Fixed Chart
+            # Chart
             df['kuadran_kinerja'] = df['kuadran_kinerja'].astype(str).str.lower()
             counts = df['kuadran_kinerja'].value_counts().reset_index()
             counts.columns = ['Kuadran', 'Total']
@@ -89,7 +93,7 @@ else:
             if c2.button(f"BELUM\n{s.get('belum', 0)}", use_container_width=True): st.session_state["filter_status"] = "belum"
             if c3.button(f"TIDAK ADA\n{s.get('tidak ada data', 0)}", use_container_width=True): st.session_state["filter_status"] = "tidak ada data"
             
-            # Tabel Dinamis
+            # Tabel
             if st.session_state["filter_status"]:
                 st.write("---")
                 df_tabel = df[df['status_clean'] == st.session_state["filter_status"]][['nama', 'status_penilaian']]
