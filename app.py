@@ -13,27 +13,38 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - Pake container tombol biar nggak ilang
+# CSS Styling - KITA FOKUS DI CSS TOMBOL SUPAYA GAK PERLU TIMPA DIV
 st.markdown("""
 <style>
     [data-testid="stHeader"] { display: none; }
+    .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; }
+    .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
     
-    /* Tombolnya kita bikin transparan biar style kita yang keluar */
+    /* STYLE TOMBOL BIAR JADI KARTU */
     div.stButton > button {
-        height: 80px !important;
         width: 100% !important;
+        height: 80px !important;
         border-radius: 12px !important;
+        color: white !important;
         font-weight: bold !important;
         border: none !important;
-        transition: 0.3s !important;
-        color: white !important;
+        transition: all 0.3s ease !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+    }
+    /* EFEK HOVER */
+    div.stButton > button:hover {
+        transform: scale(1.03);
+        filter: brightness(1.2);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
     
-    /* Efek hover biar ada respon */
-    div.stButton > button:hover {
-        transform: scale(1.05);
-        filter: brightness(1.2);
-    }
+    .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+    .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; text-transform: uppercase !important; }
+    .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
+    .legend-box { font-size: 12px; margin-bottom: 15px; text-align: center; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -64,18 +75,37 @@ else:
     if os.path.exists("header.png"): st.image("header.png")
     else: st.title("LAPORAN DINAMIS KINERJA")
 
-    if st.button("Logout"):
+    if st.button("Logout", use_container_width=True):
         st.session_state["logged_in"] = False
         st.session_state["active_filter"] = None
         st.rerun()
 
+    @st.cache_data(ttl=3600)
     def get_list_unit():
-        response = supabase.table("data_triwulan").select("unit_kerja").execute()
-        return sorted(list(set([x['unit_kerja'] for x in response.data])))
+        all_units = []
+        page_size = 1000
+        page = 0
+        while True:
+            response = supabase.table("data_triwulan").select("unit_kerja").range(page * page_size, (page + 1) * page_size - 1).execute()
+            if not response.data: break
+            df_temp = pd.DataFrame(response.data)
+            all_units.extend(df_temp['unit_kerja'].unique().tolist())
+            if len(response.data) < page_size: break
+            page += 1
+        return sorted(list(set(all_units)))
 
+    @st.cache_data(ttl=3600)
     def get_data_by_filter(pilih_tempat):
-        response = supabase.table("data_triwulan").select("*").eq("unit_kerja", pilih_tempat).execute()
-        return pd.DataFrame(response.data)
+        all_data = []
+        page_size = 1000
+        page = 0
+        while True:
+            response = supabase.table("data_triwulan").select("*").eq("unit_kerja", pilih_tempat).range(page * page_size, (page + 1) * page_size - 1).execute()
+            if not response.data: break
+            all_data.extend(response.data)
+            if len(response.data) < page_size: break
+            page += 1
+        return pd.DataFrame(all_data)
 
     list_unit = get_list_unit()
     pilih_tempat = st.selectbox("Pilih Perangkat Daerah:", ["-- Pilih --"] + list_unit)
@@ -83,29 +113,67 @@ else:
     if pilih_tempat != "-- Pilih --":
         df_filtered = get_data_by_filter(pilih_tempat)
         if not df_filtered.empty and 'kuadran_kinerja' in df_filtered.columns:
+            df_tampil = df_filtered[['nama', 'status_penilaian']].copy()
+            df_tampil.columns = ["NAMA", "STATUS PENILAIAN"]
             
-            # --- TOMBOL KARTU ---
+            buffer = io.BytesIO()
+            with pd.ExcelWriter(buffer, engine='openpyxl') as writer: df_tampil.to_excel(writer, index=False)
+            st.download_button("Download Excel", buffer.getvalue(), f"Data_{pilih_tempat}.xlsx", use_container_width=True)
+            
+            st.write("---")
+            st.subheader(f"PENILAIAN TRIWULAN: {pilih_tempat}")
+            
+            order_kategori = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang', '0', 'tidak ada data']
+            counts = df_filtered['kuadran_kinerja'].astype(str).str.lower().value_counts().reindex(order_kategori, fill_value=0).reset_index()
+            counts.columns = ['Kuadran', 'Total']
+            
+            fig = px.bar(counts, x='Kuadran', y='Total', color='Kuadran', 
+                         color_discrete_map={'sangat baik': '#399abf', 'baik': '#78c41b', 'butuh perbaikan': '#f2ed31', 
+                                            'kurang': '#f28530', 'sangat kurang': '#eb462e', '0': '#e7465d', 'tidak ada data': '#78328b'})
+            fig.update_layout(showlegend=False, xaxis=dict(title=None, showticklabels=False), yaxis=dict(title=None), margin=dict(t=10, b=10, l=10, r=10))
+            st.plotly_chart(fig, use_container_width=True)
+            
+            st.markdown("""
+            <div class="legend-box" style="line-height: 2;">
+                <span style="color:#399abf">■</span> Sangat Baik | <span style="color:#78c41b">■</span> Baik | <span style="color:#f2ed31">■</span> Perbaikan<br>
+                <span style="color:#f28530">■</span> Kurang | <span style="color:#eb462e">■</span> Sangat Kurang | <span style="color:#e7465d">■</span> belum ada nilai | <span style="color:#78328b">■</span> Tidak Ada Data
+            </div>
+            """, unsafe_allow_html=True)
+            
             df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
             s = df_filtered['status_clean'].value_counts()
             
+            # --- TOMBOL KARTU ---
+            # Kita inject warna background via CSS per tombol biar rapi
+            st.markdown("""<style>
+                button[key="btn_sudah"] { background-color: #399abf !important; }
+                button[key="btn_belum"] { background-color: #e7465d !important; }
+                button[key="btn_tidak"] { background-color: #78328b !important; }
+            </style>""", unsafe_allow_html=True)
+            
             c1, c2, c3 = st.columns(3)
-            def toggle(val): st.session_state["active_filter"] = None if st.session_state["active_filter"] == val else val
+            def toggle_filter(val): st.session_state["active_filter"] = None if st.session_state["active_filter"] == val else val
             
-            # Kita injek warna langsung di sini supaya nggak ilang (Inline Style)
-            if c1.button(f"SUDAH\n{s.get('sudah', 0)}"): toggle("sudah")
-            st.markdown("""<style>div.stButton > button:nth-child(1) { background-color: #399abf !important; }</style>""", unsafe_allow_html=True)
-            
-            if c2.button(f"BELUM\n{s.get('belum', 0)}"): toggle("belum")
-            st.markdown("""<style>div.stButton > button:nth-child(2) { background-color: #e7465d !important; }</style>""", unsafe_allow_html=True)
-            
-            if c3.button(f"TIDAK ADA\n{s.get('tidak ada data', 0)}"): toggle("tidak ada data")
-            st.markdown("""<style>div.stButton > button:nth-child(3) { background-color: #78328b !important; }</style>""", unsafe_allow_html=True)
+            if c1.button(f"SUDAH DINILAI\n{s.get('sudah', 0)}", key="btn_sudah"): toggle_filter("sudah")
+            if c2.button(f"BELUM DINILAI\n{s.get('belum', 0)}", key="btn_belum"): toggle_filter("belum")
+            if c3.button(f"TIDAK ADA DATA\n{s.get('tidak ada data', 0)}", key="btn_tidak"): toggle_filter("tidak ada data")
             
             # --- LOGIKA TABEL ---
             if st.session_state["active_filter"]:
                 st.write("---")
                 st.subheader(f"DETAIL: {st.session_state['active_filter'].upper()}")
                 df_sub = df_filtered[df_filtered['status_clean'] == st.session_state["active_filter"]][['nama', 'status_penilaian']]
-                st.table(df_sub) # Pake st.table biar lebih simpel dan gak eror pas render HTML
-        else: st.info("Data tidak ditemukan.")
+                df_sub.columns = ["NAMA", "STATUS PENILAIAN"]
+                
+                page_size = 100
+                total_data = len(df_sub)
+                total_pages = max(1, (total_data // page_size) + (1 if total_data % page_size != 0 else 0))
+                
+                col_nav1, col_nav2 = st.columns([1, 2])
+                with col_nav1:
+                    page_num = st.number_input("Pilih Halaman:", min_value=1, max_value=total_pages, value=1)
+                with col_nav2:
+                    st.markdown(f"<br>Halaman **{page_num}** dari **{total_pages}**", unsafe_allow_html=True)
+                st.markdown(df_sub.iloc[(page_num-1)*page_size : page_num*page_size].to_html(classes="custom-table", index=False), unsafe_allow_html=True)
+        else: st.info("Data tidak ditemukan atau kosong.")
     else: st.info("Pilih Perangkat Daerah di atas.")
