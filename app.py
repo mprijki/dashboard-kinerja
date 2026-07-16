@@ -108,8 +108,8 @@ else:
             counts.columns = ['Kuadran', 'Total']
             
             fig = px.bar(counts, x='Kuadran', y='Total', color='Kuadran', 
-                         color_discrete_map={'sangat baik': '#007bff', 'baik': '#28a745', 'butuh perbaikan': '#d4ac0d', 
-                                            'kurang': '#fd7e14', 'sangat kurang': '#f44336', '0': '#566573', 'tidak ada data': '#8b0000'})
+                         color_discrete_map={'sangat baik': '#399abf', 'baik': '#78c41b', 'butuh perbaikan': '#f2ed31', 
+                                            'kurang': '#fac833', 'sangat kurang': '#f44336', '0': '#76328d', 'tidak ada data': '#ed462e'})
             fig.update_layout(showlegend=False, xaxis=dict(title=None, showticklabels=False), yaxis=dict(title=None), margin=dict(t=10, b=10, l=10, r=10))
             st.plotly_chart(fig, use_container_width=True)
             
@@ -122,7 +122,7 @@ else:
                 <span style="color:#fd7e14">■</span> Kurang | 
                 <span style="color:#f44336">■</span> Sangat Kurang | 
                 <span style="color:#566573">■</span> 0 | 
-                <span style="color:#f44336">■</span> Tidak Ada Data
+                <span style="color:#8b0000">■</span> Tidak Ada Data
             </div>
             """, unsafe_allow_html=True)
             
