@@ -121,8 +121,8 @@ else:
                 <span style="color:#d4ac0d">■</span> Perbaikan<br>
                 <span style="color:#fd7e14">■</span> Kurang | 
                 <span style="color:#f44336">■</span> Sangat Kurang | 
-                <span style="color:#566573">■</span> 0 | 
-                <span style="color:#8b0000">■</span> Tidak Ada Data
+                <span style="color:#ed462e">■</span> belum ada nilai | 
+                <span style="color:#78328b">■</span> Tidak Ada Data
             </div>
             """, unsafe_allow_html=True)
             
@@ -134,13 +134,13 @@ else:
             def toggle_filter(val): st.session_state["active_filter"] = None if st.session_state["active_filter"] == val else val
             
             if c1.button(" ", key="btn_sudah", use_container_width=True): toggle_filter("sudah")
-            c1.markdown(f'<div class="metro-card" style="background:#28a745; margin-top:-65px; pointer-events:none"><span>SUDAH</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
+            c1.markdown(f'<div class="metro-card" style="background:#399abf; margin-top:-65px; pointer-events:none"><span>SUDAH MENDAPATKAN PENILAIAN</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
             
             if c2.button(" ", key="btn_belum", use_container_width=True): toggle_filter("belum")
-            c2.markdown(f'<div class="metro-card" style="background:#fd7e14; margin-top:-65px; pointer-events:none"><span>BELUM</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
+            c2.markdown(f'<div class="metro-card" style="background:#ed462e; margin-top:-65px; pointer-events:none"><span>BELUM MENDAPATKAN PENILAIAN</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
             
             if c3.button(" ", key="btn_tidak", use_container_width=True): toggle_filter("tidak ada data")
-            c3.markdown(f'<div class="metro-card" style="background:#6c757d; margin-top:-65px; pointer-events:none"><span>TIDAK ADA</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
+            c3.markdown(f'<div class="metro-card" style="background:#78328b; margin-top:-65px; pointer-events:none"><span>TIDAK ADA DATA PENILAIAN</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
             
             # --- LOGIKA TABEL ---
             if st.session_state["active_filter"]:
