@@ -45,14 +45,19 @@ if "logged_in" not in st.session_state:
 
 if not st.session_state["logged_in"]:
     st.title("🔐 Login Dashboard")
-    nip_input = st.text_input("NIP:")
-    pass_input = st.text_input("Password:", type="password")
-    if st.button("Login"):
-        if verify_login(nip_input, pass_input):
-            st.session_state["logged_in"] = True
-            st.rerun()
-        else:
-            st.error("NIP atau Password salah, Cuk!")
+    
+    # Bungkus pakai st.form biar Enter langsung login
+    with st.form("login_form"):
+        nip_input = st.text_input("NIP:")
+        pass_input = st.text_input("Password:", type="password")
+        submit_button = st.form_submit_button("Login")
+        
+        if submit_button:
+            if verify_login(nip_input, pass_input):
+                st.session_state["logged_in"] = True
+                st.rerun()
+            else:
+                st.error("NIP/PASSWORD YANG LW MASUKIN SALAH, BANGSAT!!!")
 else:
     # --- HEADER & TOMBOL LOGOUT ---
     if os.path.exists("header.png"): st.image("header.png")
