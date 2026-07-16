@@ -59,13 +59,29 @@ def verify_login(nip, password):
 # Fungsi Display Kartu (Biar rapi & nggak error)
 def display_metro_card(col, label, color, val, key, data_s, toggle_func):
     with col:
+        # Pake button sebagai pembungkus utama (Container)
+        # CSS bakal bikin tombol ini jadi kotak kartu yang cantik
         if st.button(" ", key=key, use_container_width=True):
             toggle_func(val)
+        
+        # Masukin isi kartu DI DALEM tombol pake absolute positioning
+        # Biar kliknya selalu kena tombol
         st.markdown(f'''
-            <div class="metro-wrapper">
-                <div class="metro-card" style="background:{color};">
-                    <span>{label}</span><b>{data_s.get(val, 0)}</b>
-                </div>
+            <style>
+            div[data-testid="stVerticalBlock"] div[data-testid="stButton"] button[key="{key}"] {{
+                height: 80px !important;
+                background-color: {color} !important;
+                border-radius: 12px !important;
+                border: none !important;
+                transition: all 0.2s ease !important;
+            }}
+            div[data-testid="stVerticalBlock"] div[data-testid="stButton"] button[key="{key}"]:hover {{
+                transform: scale(1.05) !important;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
+            }}
+            </style>
+            <div style="margin-top:-70px; pointer-events:none; color:white; font-weight:bold; text-align:center;">
+                <span>{label}</span><br><b>{data_s.get(val, 0)}</b>
             </div>
         ''', unsafe_allow_html=True)
 
