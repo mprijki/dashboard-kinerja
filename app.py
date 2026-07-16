@@ -13,39 +13,27 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - Semua ukuran diatur di sini biar sinkron
-CARD_HEIGHT = 65
-
-st.markdown(f"""
+# CSS Styling
+st.markdown("""
 <style>
-    [data-testid="stHeader"] {{ display: none; }}
-    .block-container {{ padding-top: 0.5rem !important; padding-bottom: 1rem !important; }}
+    [data-testid="stHeader"] { display: none; }
+    .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; }
     
-    /* Tombol transparan yang ditimpa kartu */
-    div.stButton > button {{
-        height: {CARD_HEIGHT}px !important;
-        width: 100% !important;
-        opacity: 0 !important;
-        cursor: pointer !important;
-    }}
+    /* Tombol Logout Merah */
+    div.stButton > button[key="Logout"] { background-color: #ff4b4b !important; color: white !important; border: none !important; }
+    /* Tombol Download Hijau */
+    div.stDownloadButton > button { background-color: #28a745 !important; color: white !important; border: none !important; }
     
-    /* Kartu Visual */
-    .metro-card {{ 
-        padding: 5px; border-radius: 12px; color: white; font-weight: bold;
+    /* Metro Card */
+    .metro-card { 
+        padding: 10px; border-radius: 12px; color: white; font-weight: bold;
         display: flex; flex-direction: column; justify-content: center; align-items: center; 
-        height: {CARD_HEIGHT}px;
-        margin-top: -{CARD_HEIGHT + 7}px; 
-        pointer-events: none;
-    }}
+        height: 70px; margin-top: -65px; pointer-events: none;
+    }
     
-    /* Tombol Logout & Download */
-    button[kind="secondary"][key="Logout"] {{ background-color: #ff4b4b !important; color: white !important; border: 1px solid #ff4b4b !important; opacity: 1 !important; }}
-    button[kind="secondary"][key="Download Excel"] {{ background-color: #28a745 !important; color: white !important; border: 1px solid #28a745 !important; opacity: 1 !important; }}
-    
-    .custom-table {{ width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }}
-    .custom-table th {{ background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; text-transform: uppercase !important; }}
-    .custom-table td {{ padding: 8px; text-align: center; border: 1px solid #ddd; }}
-    .legend-box {{ font-size: 12px; margin-bottom: 15px; text-align: center; }}
+    .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
+    .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; }
+    .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -120,7 +108,7 @@ else:
             
             buffer = io.BytesIO()
             with pd.ExcelWriter(buffer, engine='openpyxl') as writer: df_tampil.to_excel(writer, index=False)
-            st.download_button("Download Excel", buffer.getvalue(), f"Data_{pilih_tempat}.xlsx", key="Download Excel", use_container_width=True)
+            st.download_button("Download Excel", buffer.getvalue(), f"Data_{pilih_tempat}.xlsx", use_container_width=True)
             
             st.write("---")
             
@@ -135,27 +123,20 @@ else:
             fig.update_layout(height=150, showlegend=False, xaxis=dict(title=None, showticklabels=False), yaxis=dict(title=None), margin=dict(t=10, b=10, l=10, r=10))
             st.plotly_chart(fig, use_container_width=True)
             
-            st.markdown("""
-            <div class="legend-box" style="line-height: 2;">
-                <span style="color:#399abf">■</span> Sangat Baik | <span style="color:#78c41b">■</span> Baik | <span style="color:#f2ed31">■</span> Perbaikan<br>
-                <span style="color:#f28530">■</span> Kurang | <span style="color:#eb462e">■</span> Sangat Kurang | <span style="color:#e7465d">■</span> belum ada nilai | <span style="color:#78328b">■</span> Tidak Ada Data
-            </div>
-            """, unsafe_allow_html=True)
-            
             df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
             s = df_filtered['status_clean'].value_counts()
             
             c1, c2, c3 = st.columns(3)
             def toggle_filter(val): st.session_state["active_filter"] = None if st.session_state["active_filter"] == val else val
             
-            # Kartu interaktif
-            if c1.button(" ", key="btn_sudah", on_click=toggle_filter, args=("sudah",)): pass
+            # Tombol Kartu
+            if c1.button(" ", key="btn_sudah", on_click=toggle_filter, args=("sudah",), use_container_width=True): pass
             c1.markdown(f'<div class="metro-card" style="background:#399abf;"><span>SUDAH</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
             
-            if c2.button(" ", key="btn_belum", on_click=toggle_filter, args=("belum",)): pass
+            if c2.button(" ", key="btn_belum", on_click=toggle_filter, args=("belum",), use_container_width=True): pass
             c2.markdown(f'<div class="metro-card" style="background:#e7465d;"><span>BELUM</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
             
-            if c3.button(" ", key="btn_tidak", on_click=toggle_filter, args=("tidak ada data",)): pass
+            if c3.button(" ", key="btn_tidak", on_click=toggle_filter, args=("tidak ada data",), use_container_width=True): pass
             c3.markdown(f'<div class="metro-card" style="background:#78328b;"><span>TIDAK ADA</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
             
             if st.session_state["active_filter"]:
@@ -163,16 +144,4 @@ else:
                 st.subheader(f"DETAIL: {st.session_state['active_filter'].upper()}")
                 df_sub = df_filtered[df_filtered['status_clean'] == st.session_state["active_filter"]][['nama', 'status_penilaian']]
                 df_sub.columns = ["NAMA", "STATUS PENILAIAN"]
-                
-                page_size = 100
-                total_data = len(df_sub)
-                total_pages = max(1, (total_data // page_size) + (1 if total_data % page_size != 0 else 0))
-                
-                col_nav1, col_nav2 = st.columns([1, 2])
-                with col_nav1:
-                    page_num = st.number_input("Pilih Halaman:", min_value=1, max_value=total_pages, value=1)
-                with col_nav2:
-                    st.markdown(f"<br>Halaman **{page_num}** dari **{total_pages}** <br>Menampilkan data **{(page_num-1)*page_size + 1}** - **{min(page_num*page_size, total_data)}** dari **{total_data}**", unsafe_allow_html=True)
-                st.markdown(df_sub.iloc[(page_num-1)*page_size : page_num*page_size].to_html(classes="custom-table", index=False), unsafe_allow_html=True)
-        else: st.info("Data tidak ditemukan atau kosong.")
-    else: st.info("Pilih Perangkat Daerah di atas.")
+                st.markdown(df_sub.to_html(classes="custom-table", index=False), unsafe_allow_html=True)
