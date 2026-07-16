@@ -13,28 +13,16 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - Tombol jadi Kartu
+# CSS Styling
 st.markdown("""
 <style>
     [data-testid="stHeader"] { display: none; }
     .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; }
-    
-    /* Tombol jadi kartu */
-    div[data-testid="stButton"] button {
-        width: 100% !important;
-        height: 85px !important;
-        border-radius: 12px !important;
-        border: none !important;
-        transition: all 0.2s ease !important;
-        color: white !important;
-        font-weight: bold !important;
-        padding: 0 !important;
+    .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
+    .metro-card { 
+        padding: 10px 5px; border-radius: 12px; color: white; margin-bottom: 10px; font-weight: bold;
+        display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60px;
     }
-    div[data-testid="stButton"] button:hover {
-        transform: scale(1.03) !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
-    }
-    
     .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
     .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; text-transform: uppercase !important; }
     .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
@@ -47,17 +35,9 @@ def verify_login(nip, password):
     response = supabase.table("users_login").select("password_hash").eq("nip", nip).execute()
     if response.data:
         stored_hash = response.data[0]["password_hash"].encode('utf-8')
-        if bcrypt.checkpw(password.encode('utf-8'), stored_hash): return True
+        if bcrypt.checkpw(password.encode('utf-8'), stored_hash):
+            return True
     return False
-
-# Fungsi Kartu
-def display_metro_card(col, label, color, val, key, data_s, toggle_func):
-    with col:
-        # Inject warna via style
-        st.markdown(f'<style>button[key="{key}"] {{ background-color: {color} !important; }}</style>', unsafe_allow_html=True)
-        html_label = f'<div style="text-align:center; line-height:1.2;"><div style="font-size:11px;">{label}</div><div style="font-size:22px; font-weight:900;">{data_s.get(val, 0)}</div></div>'
-        if st.button(html_label, key=key, use_container_width=True):
-            toggle_func(val)
 
 # 3. Logika Session
 if "logged_in" not in st.session_state: st.session_state["logged_in"] = False
@@ -72,7 +52,7 @@ if not st.session_state["logged_in"]:
             if verify_login(nip_input, pass_input):
                 st.session_state["logged_in"] = True
                 st.rerun()
-            else: st.error("NIP/PASSWORD SALAH, BANGSAT!!!")
+            else: st.error("NIP/PASSWORD YANG LW MASUKIN SALAH, BANGSAT!!!")
 else:
     if os.path.exists("header.png"): st.image("header.png")
     else: st.title("LAPORAN DINAMIS KINERJA")
@@ -135,23 +115,36 @@ else:
             fig.update_layout(showlegend=False, xaxis=dict(title=None, showticklabels=False), yaxis=dict(title=None), margin=dict(t=10, b=10, l=10, r=10))
             st.plotly_chart(fig, use_container_width=True)
             
+            # --- LEGEND KOTAK ---
             st.markdown("""
             <div class="legend-box" style="line-height: 2;">
-                <span style="color:#399abf">■</span> Sangat Baik | <span style="color:#78c41b">■</span> Baik | <span style="color:#f2ed31">■</span> Perbaikan<br>
-                <span style="color:#f28530">■</span> Kurang | <span style="color:#eb462e">■</span> Sangat Kurang | <span style="color:#e7465d">■</span> belum ada nilai | <span style="color:#78328b">■</span> Tidak Ada Data
+                <span style="color:#399abf">■</span> Sangat Baik | 
+                <span style="color:#78c41b">■</span> Baik | 
+                <span style="color:#f2ed31">■</span> Perbaikan<br>
+                <span style="color:#f28530">■</span> Kurang | 
+                <span style="color:#eb462e">■</span> Sangat Kurang | 
+                <span style="color:#e7465d">■</span> belum ada nilai | 
+                <span style="color:#78328b">■</span> Tidak Ada Data
             </div>
             """, unsafe_allow_html=True)
             
             df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
             s = df_filtered['status_clean'].value_counts()
             
+            # --- TOMBOL KARTU ---
             c1, c2, c3 = st.columns(3)
             def toggle_filter(val): st.session_state["active_filter"] = None if st.session_state["active_filter"] == val else val
             
-            display_metro_card(c1, "SUDAH DINILAI", "#399abf", "sudah", "btn1", s, toggle_filter)
-            display_metro_card(c2, "BELUM DINILAI", "#e7465d", "belum", "btn2", s, toggle_filter)
-            display_metro_card(c3, "TIDAK ADA DATA", "#78328b", "tidak ada data", "btn3", s, toggle_filter)
+            if c1.button(" ", key="btn_sudah", use_container_width=True): toggle_filter("sudah")
+            c1.markdown(f'<div class="metro-card" style="background:#399abf; margin-top:-45px; pointer-events:none"><span>SUDAH DINILAI</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
             
+            if c2.button(" ", key="btn_belum", use_container_width=True): toggle_filter("belum")
+            c2.markdown(f'<div class="metro-card" style="background:#e7465d; margin-top:-45px; pointer-events:none"><span>BELUM DINILAI</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
+            
+            if c3.button(" ", key="btn_tidak", use_container_width=True): toggle_filter("tidak ada data")
+            c3.markdown(f'<div class="metro-card" style="background:#78328b; margin-top:-45px; pointer-events:none"><span>TIDAK ADA DATA PENILAIAN</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
+            
+            # --- LOGIKA TABEL ---
             if st.session_state["active_filter"]:
                 st.write("---")
                 st.subheader(f"DETAIL: {st.session_state['active_filter'].upper()}")
