@@ -145,6 +145,18 @@ else:
             
             fig.update_layout(height=150, showlegend=False, xaxis=dict(title=None, showticklabels=False), yaxis=dict(title=None), margin=dict(t=5, b=5, l=5, r=5))
             st.plotly_chart(fig, use_container_width=True)
+
+            st.markdown("""
+            <div style="font-size: 11px; text-align: center; line-height: 1.5; margin-bottom: 10px;">
+                <span style="color:#399abf">■</span> Sangat Baik | 
+                <span style="color:#78c41b">■</span> Baik | 
+                <span style="color:#f2ed31">■</span> Perbaikan<br>
+                <span style="color:#f28530">■</span> Kurang | 
+                <span style="color:#eb462e">■</span> Sangat Kurang | 
+                <span style="color:#e7465d">■</span> Belum Ada Nilai | 
+                <span style="color:#78328b">■</span> Tidak Ada Data
+            </div>
+            """, unsafe_allow_html=True)
             
             df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
             s = df_filtered['status_clean'].value_counts()
