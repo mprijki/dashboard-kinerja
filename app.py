@@ -13,31 +13,25 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - RAPI & RESPONSIVE
+# CSS Styling - Tombol jadi Kartu Data
 st.markdown("""
 <style>
     [data-testid="stHeader"] { display: none; }
-    .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; }
+    .block-container { padding-top: 0.5rem !important; }
     
-    /* Wrapper satu kesatuan biar tombol & kartu nempel presisi */
-    .metro-wrapper { position: relative; width: 100%; height: 80px; margin-bottom: 10px; cursor: pointer; }
-    
-    /* Tombol transparan menutup kartu */
-    div.stButton > button {
-        position: absolute !important; width: 100% !important; height: 100% !important;
-        background: transparent !important; border: none !important; z-index: 10 !important;
+    /* Styling Tombol biar jadi Kartu */
+    div[data-testid="stVerticalBlock"] div[data-testid="stButton"] button {
+        width: 100% !important;
+        height: 85px !important;
+        border-radius: 12px !important;
+        border: none !important;
+        transition: all 0.2s ease !important;
+        padding: 0 !important;
+        color: white !important;
     }
-    
-    /* Kartu Visual */
-    .metro-card { 
-        width: 100%; height: 100%; padding: 10px 5px; border-radius: 12px; color: white; 
-        font-weight: bold; display: flex; flex-direction: column; justify-content: center; 
-        align-items: center; transition: all 0.2s ease; z-index: 1 !important;
-    }
-    
-    /* Hover effect */
-    .metro-wrapper:hover .metro-card {
-        transform: scale(1.03); filter: brightness(1.2); box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    div[data-testid="stVerticalBlock"] div[data-testid="stButton"] button:hover {
+        transform: scale(1.03) !important;
+        box-shadow: 0 6px 15px rgba(0,0,0,0.3) !important;
     }
     
     .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
@@ -47,45 +41,26 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 2. Fungsi Auth
+# Fungsi Auth
 def verify_login(nip, password):
     response = supabase.table("users_login").select("password_hash").eq("nip", nip).execute()
     if response.data:
         stored_hash = response.data[0]["password_hash"].encode('utf-8')
-        if bcrypt.checkpw(password.encode('utf-8'), stored_hash):
-            return True
+        if bcrypt.checkpw(password.encode('utf-8'), stored_hash): return True
     return False
 
-# Fungsi Display Kartu (Biar rapi & nggak error)
+# Fungsi buat nampilin Tombol Kartu
 def display_metro_card(col, label, color, val, key, data_s, toggle_func):
     with col:
-        # Pake button sebagai pembungkus utama (Container)
-        # CSS bakal bikin tombol ini jadi kotak kartu yang cantik
-        if st.button(" ", key=key, use_container_width=True):
+        st.markdown(f"""<style>button[key="{key}"] {{ background-color: {color} !important; }}</style>""", unsafe_allow_html=True)
+        label_html = f"""<div style="text-align:center; line-height:1.2;">
+            <div style="font-size:11px;">{label}</div>
+            <div style="font-size:20px; font-weight:900;">{data_s.get(val, 0)}</div>
+        </div>"""
+        if st.button(label_html, key=key, use_container_width=True):
             toggle_func(val)
-        
-        # Masukin isi kartu DI DALEM tombol pake absolute positioning
-        # Biar kliknya selalu kena tombol
-        st.markdown(f'''
-            <style>
-            div[data-testid="stVerticalBlock"] div[data-testid="stButton"] button[key="{key}"] {{
-                height: 80px !important;
-                background-color: {color} !important;
-                border-radius: 12px !important;
-                border: none !important;
-                transition: all 0.2s ease !important;
-            }}
-            div[data-testid="stVerticalBlock"] div[data-testid="stButton"] button[key="{key}"]:hover {{
-                transform: scale(1.05) !important;
-                box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
-            }}
-            </style>
-            <div style="margin-top:-70px; pointer-events:none; color:white; font-weight:bold; text-align:center;">
-                <span>{label}</span><br><b>{data_s.get(val, 0)}</b>
-            </div>
-        ''', unsafe_allow_html=True)
 
-# 3. Logika Session
+# Session State
 if "logged_in" not in st.session_state: st.session_state["logged_in"] = False
 if "active_filter" not in st.session_state: st.session_state["active_filter"] = None
 
@@ -174,10 +149,9 @@ else:
             c1, c2, c3 = st.columns(3)
             def toggle_filter(val): st.session_state["active_filter"] = None if st.session_state["active_filter"] == val else val
             
-            # Panggil fungsi kartu rapi
-            display_metro_card(c1, "SUDAH DINILAI", "#399abf", "sudah", "btn_sudah", s, toggle_filter)
-            display_metro_card(c2, "BELUM DINILAI", "#e7465d", "belum", "btn_belum", s, toggle_filter)
-            display_metro_card(c3, "TIDAK ADA DATA", "#78328b", "tidak ada data", "btn_tidak", s, toggle_filter)
+            display_metro_card(c1, "SUDAH DINILAI", "#399abf", "sudah", "btn1", s, toggle_filter)
+            display_metro_card(c2, "BELUM DINILAI", "#e7465d", "belum", "btn2", s, toggle_filter)
+            display_metro_card(c3, "TIDAK ADA DATA", "#78328b", "tidak ada data", "btn3", s, toggle_filter)
             
             if st.session_state["active_filter"]:
                 st.write("---")
