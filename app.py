@@ -13,8 +13,8 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - Atur CARD_H untuk merubah ukuran tombol & kartu sekaligus
-CARD_H = 50 
+# CSS Styling - Sudah dibersihkan total biar gak ada sisa border tombol
+CARD_H = 55 
 
 st.markdown(f"""
 <style>
@@ -25,24 +25,26 @@ st.markdown(f"""
     div.stButton > button[key="Logout"] {{ background-color: #ff4b4b !important; color: white !important; border: none !important; }}
     div.stDownloadButton > button {{ background-color: #28a745 !important; color: white !important; border: none !important; }}
     
-    /* Tombol Transparan di balik kartu */
-    div.stButton > button { 
-        height: 50px !important; 
+    /* Tombol Transparan di balik kartu - Dihilangkan semua efek defaultnya */
+    div.stButton > button {{ 
+        height: {CARD_H}px !important; 
         background: none !important; 
         border: none !important; 
-        box-shadow: none !important;
-        padding: 0 !important;
+        box-shadow: none !important; 
+        padding: 0 !important; 
+    }}
     
-    /* Metro Card - Kartu Visual */
-    adding: 5px; border-radius: 10px; color: white; font-weight: bold;
+    /* Metro Card - Kartu Visual yang nutupin tombol */
+    .metro-card {{ 
+        padding: 5px; border-radius: 10px; color: white; font-weight: bold;
         display: flex; flex-direction: column; justify-content: center; align-items: center; 
-        height: 50px; 
-        margin-top: -50px; /* Disesuaikan supaya presisi */
+        height: {CARD_H}px; 
+        margin-top: -{CARD_H}px; 
         pointer-events: none;
     }}
     
     .metro-card span {{ font-size: 10px; text-transform: uppercase; }}
-    .metro-card b {{ font-size: 14px; }}
+    .metro-card b {{ font-size: 16px; }}
     
     .custom-table {{ width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }}
     .custom-table th {{ background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; }}
