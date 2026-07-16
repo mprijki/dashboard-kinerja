@@ -13,24 +13,39 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling
-st.markdown("""
+# CSS Styling - Semua ukuran diatur di sini biar sinkron
+CARD_HEIGHT = 65
+
+st.markdown(f"""
 <style>
-    [data-testid="stHeader"] { display: none; }
-    .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; }
-    .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
-    .metro-card { 
-        padding: 10px 5px; border-radius: 12px; color: white; margin-bottom: 10px; font-weight: bold;
-        display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60px;
-    }
-    .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-    .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; text-transform: uppercase !important; }
-    .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
-    .legend-box { font-size: 12px; margin-bottom: 15px; text-align: center; }
+    [data-testid="stHeader"] {{ display: none; }}
+    .block-container {{ padding-top: 0.5rem !important; padding-bottom: 1rem !important; }}
     
-    /* Warna Tombol */
-    button[kind="secondary"][key="Logout"] { background-color: #ff4b4b !important; color: white !important; border: 1px solid #ff4b4b !important; }
-    button[kind="secondary"][key="Download Excel"] { background-color: #28a745 !important; color: white !important; border: 1px solid #28a745 !important; }
+    /* Tombol transparan yang ditimpa kartu */
+    div.stButton > button {{
+        height: {CARD_HEIGHT}px !important;
+        width: 100% !important;
+        opacity: 0 !important;
+        cursor: pointer !important;
+    }}
+    
+    /* Kartu Visual */
+    .metro-card {{ 
+        padding: 5px; border-radius: 12px; color: white; font-weight: bold;
+        display: flex; flex-direction: column; justify-content: center; align-items: center; 
+        height: {CARD_HEIGHT}px;
+        margin-top: -{CARD_HEIGHT + 7}px; 
+        pointer-events: none;
+    }}
+    
+    /* Tombol Logout & Download */
+    button[kind="secondary"][key="Logout"] {{ background-color: #ff4b4b !important; color: white !important; border: 1px solid #ff4b4b !important; opacity: 1 !important; }}
+    button[kind="secondary"][key="Download Excel"] {{ background-color: #28a745 !important; color: white !important; border: 1px solid #28a745 !important; opacity: 1 !important; }}
+    
+    .custom-table {{ width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }}
+    .custom-table th {{ background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; text-transform: uppercase !important; }}
+    .custom-table td {{ padding: 8px; text-align: center; border: 1px solid #ddd; }}
+    .legend-box {{ font-size: 12px; margin-bottom: 15px; text-align: center; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -94,6 +109,7 @@ else:
         return pd.DataFrame(all_data)
 
     list_unit = get_list_unit()
+    st.markdown("<h5 style='text-align: center;'>PENILAIAN TRIWULAN</h5>", unsafe_allow_html=True)
     pilih_tempat = st.selectbox("Pilih Perangkat Daerah:", ["-- Pilih --"] + list_unit)
 
     if pilih_tempat != "-- Pilih --":
@@ -107,7 +123,6 @@ else:
             st.download_button("Download Excel", buffer.getvalue(), f"Data_{pilih_tempat}.xlsx", key="Download Excel", use_container_width=True)
             
             st.write("---")
-            st.markdown(f"##### PENILAIAN TRIWULAN: {pilih_tempat}")
             
             order_kategori = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang', '0', 'tidak ada data']
             counts = df_filtered['kuadran_kinerja'].astype(str).str.lower().value_counts().reindex(order_kategori, fill_value=0).reset_index()
@@ -133,14 +148,15 @@ else:
             c1, c2, c3 = st.columns(3)
             def toggle_filter(val): st.session_state["active_filter"] = None if st.session_state["active_filter"] == val else val
             
-            if c1.button(" ", key="btn_sudah", use_container_width=True): toggle_filter("sudah")
-            c1.markdown(f'<div class="metro-card" style="background:#399abf; margin-top:-45px; pointer-events:none"><span>SUDAH DINILAI</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
+            # Kartu interaktif
+            if c1.button(" ", key="btn_sudah", on_click=toggle_filter, args=("sudah",)): pass
+            c1.markdown(f'<div class="metro-card" style="background:#399abf;"><span>SUDAH</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
             
-            if c2.button(" ", key="btn_belum", use_container_width=True): toggle_filter("belum")
-            c2.markdown(f'<div class="metro-card" style="background:#e7465d; margin-top:-45px; pointer-events:none"><span>BELUM DINILAI</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
+            if c2.button(" ", key="btn_belum", on_click=toggle_filter, args=("belum",)): pass
+            c2.markdown(f'<div class="metro-card" style="background:#e7465d;"><span>BELUM</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
             
-            if c3.button(" ", key="btn_tidak", use_container_width=True): toggle_filter("tidak ada data")
-            c3.markdown(f'<div class="metro-card" style="background:#78328b; margin-top:-45px; pointer-events:none"><span>TIDAK ADA DATA PENILAIAN</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
+            if c3.button(" ", key="btn_tidak", on_click=toggle_filter, args=("tidak ada data",)): pass
+            c3.markdown(f'<div class="metro-card" style="background:#78328b;"><span>TIDAK ADA</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
             
             if st.session_state["active_filter"]:
                 st.write("---")
