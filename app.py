@@ -13,30 +13,32 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - HANYA NAMBAH HOVER, STRUKTUR ORIGINAL UTUH
+# CSS Styling - HOVER AKTIF & EFEK SAMA UNTUK SEMUA TOMBOL
 st.markdown("""
 <style>
     [data-testid="stHeader"] { display: none; }
     .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; }
     .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
     
-    /* Hover untuk tombol standard (Logout, Download, Login) */
+    /* Hover seragam untuk semua tombol Streamlit (Login, Logout, Download) */
     div.stButton > button:hover {
         transform: scale(1.02);
         filter: brightness(1.1);
         transition: all 0.2s ease;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     }
-
-    /* HOVER KHUSUS KARTU (Pindahin ke sini biar gak ketutup) */
+    
+    /* Kartu Metro - pointer-events diaktifkan biar hover jalan */
     .metro-card { 
         padding: 10px 5px; border-radius: 12px; color: white; margin-bottom: 10px; font-weight: bold;
         display: flex; flex-direction: column; justify-content: center; align-items: center; height: 80px;
-        transition: all 0.2s ease; cursor: pointer;
+        position: relative; z-index: 1; transition: all 0.2s ease;
     }
     .metro-card:hover {
         transform: scale(1.03);
         filter: brightness(1.2);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        cursor: pointer;
     }
     
     .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
@@ -78,6 +80,7 @@ else:
         st.session_state["active_filter"] = None
         st.rerun()
 
+    # (Logika get_list_unit & get_data_by_filter sama seperti punya lo)
     @st.cache_data(ttl=3600)
     def get_list_unit():
         all_units = []
@@ -144,15 +147,17 @@ else:
             c1, c2, c3 = st.columns(3)
             def toggle_filter(val): st.session_state["active_filter"] = None if st.session_state["active_filter"] == val else val
             
+            # Kartu (Tombol tetap transparan, tapi kartu sekarang punya hover sendiri)
             if c1.button(" ", key="btn_sudah", use_container_width=True): toggle_filter("sudah")
-            c1.markdown(f'<div class="metro-card" style="background:#399abf; margin-top:-65px; pointer-events:none"><span>SUDAH DINILAI</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
+            c1.markdown(f'<div class="metro-card" style="background:#399abf; margin-top:-65px;"><span>SUDAH DINILAI</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
             
             if c2.button(" ", key="btn_belum", use_container_width=True): toggle_filter("belum")
-            c2.markdown(f'<div class="metro-card" style="background:#e7465d; margin-top:-65px; pointer-events:none"><span>BELUM DINILAI</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
+            c2.markdown(f'<div class="metro-card" style="background:#e7465d; margin-top:-65px;"><span>BELUM DINILAI</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
             
             if c3.button(" ", key="btn_tidak", use_container_width=True): toggle_filter("tidak ada data")
-            c3.markdown(f'<div class="metro-card" style="background:#78328b; margin-top:-65px; pointer-events:none"><span>TIDAK ADA DATA PENILAIAN</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
+            c3.markdown(f'<div class="metro-card" style="background:#78328b; margin-top:-65px;"><span>TIDAK ADA DATA PENILAIAN</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
             
+            # (Logika tabel tetap sama)
             if st.session_state["active_filter"]:
                 st.write("---")
                 st.subheader(f"DETAIL: {st.session_state['active_filter'].upper()}")
@@ -169,5 +174,3 @@ else:
                 with col_nav2:
                     st.markdown(f"<br>Halaman **{page_num}** dari **{total_pages}** <br>Menampilkan data **{(page_num-1)*page_size + 1}** - **{min(page_num*page_size, total_data)}** dari **{total_data}**", unsafe_allow_html=True)
                 st.markdown(df_sub.iloc[(page_num-1)*page_size : page_num*page_size].to_html(classes="custom-table", index=False), unsafe_allow_html=True)
-        else: st.info("Data tidak ditemukan atau kosong.")
-    else: st.info("Pilih Perangkat Daerah di atas.")
