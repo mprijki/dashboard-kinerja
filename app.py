@@ -103,7 +103,7 @@ else:
             st.download_button("Download Excel", buffer.getvalue(), f"Data_{pilih_tempat}.xlsx", use_container_width=True)
             
             st.write("---")
-            st.subheader(f"PENILAIAN TRIWULAN: {pilih_tempat}")
+            st.markdown(f"##### PENILAIAN TRIWULAN: {pilih_tempat}")
             
             order_kategori = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang', '0', 'tidak ada data']
             counts = df_filtered['kuadran_kinerja'].astype(str).str.lower().value_counts().reindex(order_kategori, fill_value=0).reset_index()
