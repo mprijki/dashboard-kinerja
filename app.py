@@ -26,13 +26,19 @@ st.markdown(f"""
     div.stDownloadButton > button {{ background-color: #28a745 !important; color: white !important; border: none !important; }}
     
     /* Tombol Transparan di balik kartu */
-    div.stButton > button {{ height: {CARD_H}px !important; }}
+    div.stButton > button { 
+        height: 50px !important; 
+        background: none !important; 
+        border: none !important; 
+        box-shadow: none !important;
+        padding: 0 !important;
     
     /* Metro Card - Kartu Visual */
-    .metro-card {{ 
-        padding: 5px; border-radius: 10px; color: white; font-weight: bold;
+    adding: 5px; border-radius: 10px; color: white; font-weight: bold;
         display: flex; flex-direction: column; justify-content: center; align-items: center; 
-        height: {CARD_H}px; margin-top: -{CARD_H + 5}px; pointer-events: none;
+        height: 50px; 
+        margin-top: -50px; /* Disesuaikan supaya presisi */
+        pointer-events: none;
     }}
     
     .metro-card span {{ font-size: 10px; text-transform: uppercase; }}
