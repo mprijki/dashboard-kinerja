@@ -13,39 +13,36 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - Final & Fixed (Kerapatan & Warna)
 CARD_H = 55 
 
 st.markdown(f"""
 <style>
-    /* Hilangkan Header & Rapatkan Container */
+    /* 1. Global Layout Rapat */
     [data-testid="stHeader"] {{ display: none; }}
     .block-container {{ padding-top: 0.2rem !important; padding-bottom: 0.2rem !important; }}
     div[data-testid="stVerticalBlock"] {{ gap: 0.1rem !important; }}
     
+    /* 2. Styling Khusus Login (Sesuai permintaan) */
+    div[data-baseweb="input"] {{ border-color: #d9467a !important; }}
+    span[data-testid="stIconMaterial"] {{ color: #399abf !important; }}
+    .stMarkdown p:has(a) {{ display: none !important; }}
+    
     /* Tombol Logout (Paksa Merah) */
-    div.stButton > button[key="Logout"] {{ 
-        background-color: #ff4b4b !important; 
-        color: white !important; 
-        border: none !important; 
-    }}
+    div.stButton > button[key="Logout"] {{ background-color: #ff4b4b !important; color: white !important; border: none !important; }}
     
     /* Tombol Download (Paksa Ijo) */
-    div.stDownloadButton > button {{ 
-        background-color: #28a745 !important; 
-        color: white !important; 
-        border: none !important; 
-        margin-bottom: 0px !important; 
-    }}
+    div.stDownloadButton > button {{ background-color: #28a745 !important; color: white !important; border: none !important; }}
     
-    /* Tombol Kartu: Bersihkan total */
+    /* Tombol Login & Kartu */
     div.stButton > button:not([key="Logout"]) {{ 
         height: {CARD_H}px !important; 
-        background: none !important; 
+        background-color: #78328b !important; /* Warna Login */
+        color: white !important; 
         border: none !important; 
         box-shadow: none !important; 
         padding: 0 !important; 
         margin: 0 !important;
+        border-radius: 8px;
     }}
     
     /* Metro Card - Visual */
@@ -81,15 +78,15 @@ if "logged_in" not in st.session_state: st.session_state["logged_in"] = False
 if "active_filter" not in st.session_state: st.session_state["active_filter"] = None
 
 if not st.session_state["logged_in"]:
-    st.title("🔐 PERMISI DULU JANGAN ASAL NYELONONG")
+    st.title("🔐 SIGN IN")
     with st.form("login_form"):
-        nip_input = st.text_input("NIP:")
+        nip_input = st.text_input("Username:")
         pass_input = st.text_input("Password:", type="password")
-        if st.form_submit_button("Login"):
+        if st.form_submit_button("LOGIN"):
             if verify_login(nip_input, pass_input):
                 st.session_state["logged_in"] = True
                 st.rerun()
-            else: st.error("NIP/PASSWORD YANG LW MASUKIN SALAH, BANGSAT!!!")
+            else: st.error("NIP/PASSWORD SALAH!")
 else:
     if os.path.exists("header.png"): st.image("header.png")
     else: st.title("LAPORAN DINAMIS KINERJA")
@@ -99,6 +96,7 @@ else:
         st.session_state["active_filter"] = None
         st.rerun()
 
+    # --- SISA LOGIKA APP TETAP SAMA ---
     @st.cache_data(ttl=3600)
     def get_list_unit():
         all_units = []
