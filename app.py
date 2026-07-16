@@ -109,19 +109,19 @@ else:
             
             fig = px.bar(counts, x='Kuadran', y='Total', color='Kuadran', 
                          color_discrete_map={'sangat baik': '#399abf', 'baik': '#78c41b', 'butuh perbaikan': '#f2ed31', 
-                                            'kurang': '#fac833', 'sangat kurang': '#f44336', '0': '#76328d', 'tidak ada data': '#ed462e'})
+                                            'kurang': '#f28530', 'sangat kurang': '#eb462e', '0': '#e7465d', 'tidak ada data': '#78328b'})
             fig.update_layout(showlegend=False, xaxis=dict(title=None, showticklabels=False), yaxis=dict(title=None), margin=dict(t=10, b=10, l=10, r=10))
             st.plotly_chart(fig, use_container_width=True)
             
             # --- LEGEND KOTAK ---
             st.markdown("""
             <div class="legend-box" style="line-height: 2;">
-                <span style="color:#007bff">■</span> Sangat Baik | 
-                <span style="color:#28a745">■</span> Baik | 
-                <span style="color:#d4ac0d">■</span> Perbaikan<br>
-                <span style="color:#fd7e14">■</span> Kurang | 
-                <span style="color:#f44336">■</span> Sangat Kurang | 
-                <span style="color:#ed462e">■</span> belum ada nilai | 
+                <span style="color:#399abf">■</span> Sangat Baik | 
+                <span style="color:#78c41b">■</span> Baik | 
+                <span style="color:#f2ed31">■</span> Perbaikan<br>
+                <span style="color:#f28530">■</span> Kurang | 
+                <span style="color:#eb462e">■</span> Sangat Kurang | 
+                <span style="color:#e7465d">■</span> belum ada nilai | 
                 <span style="color:#78328b">■</span> Tidak Ada Data
             </div>
             """, unsafe_allow_html=True)
@@ -137,7 +137,7 @@ else:
             c1.markdown(f'<div class="metro-card" style="background:#399abf; margin-top:-65px; pointer-events:none"><span>SUDAH MENDAPATKAN PENILAIAN</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
             
             if c2.button(" ", key="btn_belum", use_container_width=True): toggle_filter("belum")
-            c2.markdown(f'<div class="metro-card" style="background:#ed462e; margin-top:-65px; pointer-events:none"><span>BELUM MENDAPATKAN PENILAIAN</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
+            c2.markdown(f'<div class="metro-card" style="background:#e7465d; margin-top:-65px; pointer-events:none"><span>BELUM MENDAPATKAN PENILAIAN</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
             
             if c3.button(" ", key="btn_tidak", use_container_width=True): toggle_filter("tidak ada data")
             c3.markdown(f'<div class="metro-card" style="background:#78328b; margin-top:-65px; pointer-events:none"><span>TIDAK ADA DATA PENILAIAN</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
