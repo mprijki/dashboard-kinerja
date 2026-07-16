@@ -54,15 +54,13 @@ if not st.session_state["logged_in"]:
         else:
             st.error("NIP atau Password salah, Cuk!")
 else:
-    # --- HEADER & LOGOUT (SEBARIS) ---
-    col_h1, col_h2 = st.columns([4, 1])
-    with col_h1:
-        if os.path.exists("header.png"): st.image("header.png")
-        else: st.title("LAPORAN DINAMIS KINERJA")
-    with col_h2:
-        if st.button("Logout"):
-            st.session_state["logged_in"] = False
-            st.rerun()
+    # --- HEADER & TOMBOL LOGOUT ---
+    if os.path.exists("header.png"): st.image("header.png")
+    else: st.title("LAPORAN DINAMIS KINERJA")
+
+    if st.button("Logout", use_container_width=True):
+        st.session_state["logged_in"] = False
+        st.rerun()
 
     # Fungsi Data
     @st.cache_data(ttl=3600)
@@ -104,6 +102,8 @@ else:
             buffer = io.BytesIO()
             with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
                 df_tampil.to_excel(writer, index=False)
+            
+            # Tombol Download (sama lebar dengan tombol Logout)
             st.download_button("Download Excel", buffer.getvalue(), f"Data_{pilih_tempat}.xlsx", use_container_width=True)
             
             st.write("---")
