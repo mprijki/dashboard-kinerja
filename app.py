@@ -13,47 +13,29 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - RAPIH, COMPACT, & ESTETIK
+# CSS Styling - HANYA NAMBAH HOVER, STRUKTUR ORIGINAL UTUH
 st.markdown("""
 <style>
     [data-testid="stHeader"] { display: none; }
     .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; }
+    .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
     
-    /* Tombol Kartu (dibuat seragam & sejajar) */
-    div.stButton > button {
-        height: 70px !important;
-        width: 100% !important;
-        border-radius: 10px !important;
-        font-weight: bold !important;
-        border: none !important;
-        transition: all 0.3s ease !important;
-        color: white !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: center !important;
-        align-items: center !important;
-        line-height: 1.1 !important;
-        font-size: 12px !important;
+    /* EFEK HOVER UNTUK SEMUA TOMBOL (LOGIN, LOGOUT, DOWNLOAD, KARTU) */
+    div.stButton > button:hover {
+        transform: scale(1.02);
+        filter: brightness(1.1);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        transition: all 0.2s ease;
     }
     
-    /* Tombol Logout Khusus (Kecil & Kontras) */
-    div[data-testid="stButton"] button[kind="secondary"] {
-        height: 35px !important;
-        background-color: #6c757d !important;
-        color: white !important;
-        margin-bottom: 10px !important;
+    .metro-card { 
+        padding: 10px 5px; border-radius: 12px; color: white; margin-bottom: 10px; font-weight: bold;
+        display: flex; flex-direction: column; justify-content: center; align-items: center; height: 80px;
     }
-
-    div.stButton > button:hover { transform: scale(1.03); filter: brightness(1.2); }
-    
-    /* Warna per posisi button */
-    div.stColumn:nth-of-type(1) button { background-color: #399abf !important; }
-    div.stColumn:nth-of-type(2) button { background-color: #e7465d !important; }
-    div.stColumn:nth-of-type(3) button { background-color: #78328b !important; }
-
     .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
-    .custom-table th { background-color: #add8e6; color: black; padding: 8px; text-align: center; border: 1px solid #ddd; }
-    .custom-table td { padding: 6px; text-align: center; border: 1px solid #ddd; }
+    .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; text-transform: uppercase !important; }
+    .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
+    .legend-box { font-size: 12px; margin-bottom: 15px; text-align: center; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -71,7 +53,7 @@ if "logged_in" not in st.session_state: st.session_state["logged_in"] = False
 if "active_filter" not in st.session_state: st.session_state["active_filter"] = None
 
 if not st.session_state["logged_in"]:
-    st.title("🔐 PERMISI DULU")
+    st.title("🔐 PERMISI DULU JANGAN ASAL NYELONONG")
     with st.form("login_form"):
         nip_input = st.text_input("NIP:")
         pass_input = st.text_input("Password:", type="password")
@@ -79,46 +61,106 @@ if not st.session_state["logged_in"]:
             if verify_login(nip_input, pass_input):
                 st.session_state["logged_in"] = True
                 st.rerun()
-            else: st.error("NIP/PASSWORD SALAH, BANGSAT!")
+            else: st.error("NIP/PASSWORD YANG LW MASUKIN SALAH, BANGSAT!!!")
 else:
     if os.path.exists("header.png"): st.image("header.png")
-    else: st.title("LAPORAN KINERJA")
+    else: st.title("LAPORAN DINAMIS KINERJA")
 
-    if st.button("Logout"):
+    if st.button("Logout", use_container_width=True):
         st.session_state["logged_in"] = False
         st.session_state["active_filter"] = None
         st.rerun()
 
     @st.cache_data(ttl=3600)
-    def get_data_by_filter(pilih_tempat):
-        response = supabase.table("data_triwulan").select("*").eq("unit_kerja", pilih_tempat).execute()
-        return pd.DataFrame(response.data)
+    def get_list_unit():
+        all_units = []
+        page_size = 1000
+        page = 0
+        while True:
+            response = supabase.table("data_triwulan").select("unit_kerja").range(page * page_size, (page + 1) * page_size - 1).execute()
+            if not response.data: break
+            df_temp = pd.DataFrame(response.data)
+            all_units.extend(df_temp['unit_kerja'].unique().tolist())
+            if len(response.data) < page_size: break
+            page += 1
+        return sorted(list(set(all_units)))
 
-    units = sorted(list(set([x['unit_kerja'] for x in supabase.table("data_triwulan").select("unit_kerja").execute().data])))
-    pilih_tempat = st.selectbox("Pilih Perangkat Daerah:", ["-- Pilih --"] + units)
+    @st.cache_data(ttl=3600)
+    def get_data_by_filter(pilih_tempat):
+        all_data = []
+        page_size = 1000
+        page = 0
+        while True:
+            response = supabase.table("data_triwulan").select("*").eq("unit_kerja", pilih_tempat).range(page * page_size, (page + 1) * page_size - 1).execute()
+            if not response.data: break
+            all_data.extend(response.data)
+            if len(response.data) < page_size: break
+            page += 1
+        return pd.DataFrame(all_data)
+
+    list_unit = get_list_unit()
+    pilih_tempat = st.selectbox("Pilih Perangkat Daerah:", ["-- Pilih --"] + list_unit)
 
     if pilih_tempat != "-- Pilih --":
         df_filtered = get_data_by_filter(pilih_tempat)
-        if not df_filtered.empty:
-            st.download_button("📥 Download Excel", io.BytesIO(), f"Data_{pilih_tempat}.xlsx", use_container_width=True)
+        if not df_filtered.empty and 'kuadran_kinerja' in df_filtered.columns:
+            df_tampil = df_filtered[['nama', 'status_penilaian']].copy()
+            df_tampil.columns = ["NAMA", "STATUS PENILAIAN"]
             
-            st.subheader(f"📊 {pilih_tempat}")
+            buffer = io.BytesIO()
+            with pd.ExcelWriter(buffer, engine='openpyxl') as writer: df_tampil.to_excel(writer, index=False)
+            st.download_button("Download Excel", buffer.getvalue(), f"Data_{pilih_tempat}.xlsx", use_container_width=True)
             
-            # CHART COMPACT
-            counts = df_filtered['kuadran_kinerja'].value_counts().reset_index()
-            fig = px.bar(counts, x='kuadran_kinerja', y='count', color='kuadran_kinerja', height=250)
-            fig.update_layout(showlegend=False, margin=dict(t=10, b=10, l=10, r=10))
+            st.write("---")
+            st.subheader(f"PENILAIAN TRIWULAN: {pilih_tempat}")
+            
+            order_kategori = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang', '0', 'tidak ada data']
+            counts = df_filtered['kuadran_kinerja'].astype(str).str.lower().value_counts().reindex(order_kategori, fill_value=0).reset_index()
+            counts.columns = ['Kuadran', 'Total']
+            
+            fig = px.bar(counts, x='Kuadran', y='Total', color='Kuadran', 
+                         color_discrete_map={'sangat baik': '#399abf', 'baik': '#78c41b', 'butuh perbaikan': '#f2ed31', 
+                                            'kurang': '#f28530', 'sangat kurang': '#eb462e', '0': '#e7465d', 'tidak ada data': '#78328b'})
+            fig.update_layout(showlegend=False, xaxis=dict(title=None, showticklabels=False), yaxis=dict(title=None), margin=dict(t=10, b=10, l=10, r=10))
             st.plotly_chart(fig, use_container_width=True)
             
-            # TOMBOL KARTU
-            s = df_filtered['status_penilaian'].astype(str).str.lower().str.strip().value_counts()
-            c1, c2, c3 = st.columns(3)
-            if c1.button(f"SUDAH\n{s.get('sudah', 0)}"): st.session_state["active_filter"] = "sudah"
-            if c2.button(f"BELUM\n{s.get('belum', 0)}"): st.session_state["active_filter"] = "belum"
-            if c3.button(f"NULL\n{s.get('tidak ada data', 0)}"): st.session_state["active_filter"] = "tidak ada data"
+            st.markdown("""
+            <div class="legend-box" style="line-height: 2;">
+                <span style="color:#399abf">■</span> Sangat Baik | <span style="color:#78c41b">■</span> Baik | <span style="color:#f2ed31">■</span> Perbaikan<br>
+                <span style="color:#f28530">■</span> Kurang | <span style="color:#eb462e">■</span> Sangat Kurang | <span style="color:#e7465d">■</span> belum ada nilai | <span style="color:#78328b">■</span> Tidak Ada Data
+            </div>
+            """, unsafe_allow_html=True)
             
-            # TABEL
+            df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
+            s = df_filtered['status_clean'].value_counts()
+            
+            c1, c2, c3 = st.columns(3)
+            def toggle_filter(val): st.session_state["active_filter"] = None if st.session_state["active_filter"] == val else val
+            
+            if c1.button(" ", key="btn_sudah", use_container_width=True): toggle_filter("sudah")
+            c1.markdown(f'<div class="metro-card" style="background:#399abf; margin-top:-65px; pointer-events:none"><span>SUDAH DINILAI</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
+            
+            if c2.button(" ", key="btn_belum", use_container_width=True): toggle_filter("belum")
+            c2.markdown(f'<div class="metro-card" style="background:#e7465d; margin-top:-65px; pointer-events:none"><span>BELUM DINILAI</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
+            
+            if c3.button(" ", key="btn_tidak", use_container_width=True): toggle_filter("tidak ada data")
+            c3.markdown(f'<div class="metro-card" style="background:#78328b; margin-top:-65px; pointer-events:none"><span>TIDAK ADA DATA PENILAIAN</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
+            
             if st.session_state["active_filter"]:
                 st.write("---")
-                df_sub = df_filtered[df_filtered['status_penilaian'].str.lower().str.strip() == st.session_state["active_filter"]]
-                st.markdown(df_sub[['nama', 'status_penilaian']].to_html(classes="custom-table", index=False), unsafe_allow_html=True)
+                st.subheader(f"DETAIL: {st.session_state['active_filter'].upper()}")
+                df_sub = df_filtered[df_filtered['status_clean'] == st.session_state["active_filter"]][['nama', 'status_penilaian']]
+                df_sub.columns = ["NAMA", "STATUS PENILAIAN"]
+                
+                page_size = 100
+                total_data = len(df_sub)
+                total_pages = max(1, (total_data // page_size) + (1 if total_data % page_size != 0 else 0))
+                
+                col_nav1, col_nav2 = st.columns([1, 2])
+                with col_nav1:
+                    page_num = st.number_input("Pilih Halaman:", min_value=1, max_value=total_pages, value=1)
+                with col_nav2:
+                    st.markdown(f"<br>Halaman **{page_num}** dari **{total_pages}** <br>Menampilkan data **{(page_num-1)*page_size + 1}** - **{min(page_num*page_size, total_data)}** dari **{total_data}**", unsafe_allow_html=True)
+                st.markdown(df_sub.iloc[(page_num-1)*page_size : page_num*page_size].to_html(classes="custom-table", index=False), unsafe_allow_html=True)
+        else: st.info("Data tidak ditemukan atau kosong.")
+    else: st.info("Pilih Perangkat Daerah di atas.")
