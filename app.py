@@ -13,56 +13,50 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-CARD_H = 55 
-
-st.markdown(f"""
-<style>
-    /* 1. Global Layout Rapat */
-    [data-testid="stHeader"] {{ display: none; }}
-    .block-container {{ padding-top: 0.2rem !important; padding-bottom: 0.2rem !important; }}
-    div[data-testid="stVerticalBlock"] {{ gap: 0.1rem !important; }}
-    
-    /* 2. Styling Khusus Login (Sesuai permintaan) */
-    div[data-baseweb="input"] {{ border-color: #d9467a !important; }}
-    span[data-testid="stIconMaterial"] {{ color: #399abf !important; }}
-    .stMarkdown p:has(a) {{ display: none !important; }}
-    
-    /* Tombol Logout (Paksa Merah) */
-    div.stButton > button[key="Logout"] {{ background-color: #ff4b4b !important; color: white !important; border: none !important; }}
-    
-    /* Tombol Download (Paksa Ijo) */
-    div.stDownloadButton > button {{ background-color: #28a745 !important; color: white !important; border: none !important; }}
-    
-    /* Tombol Login & Kartu */
-    div.stButton > button:not([key="Logout"]) {{ 
-        height: {CARD_H}px !important; 
-        background-color: #78328b !important; /* Warna Login */
-        color: white !important; 
-        border: none !important; 
-        box-shadow: none !important; 
-        padding: 0 !important; 
-        margin: 0 !important;
-        border-radius: 8px;
-    }}
-    
-    /* Metro Card - Visual */
-    .metro-card {{ 
-        padding: 5px; border-radius: 10px; color: white; font-weight: bold;
-        display: flex; flex-direction: column; justify-content: center; align-items: center; 
-        height: {CARD_H}px; 
-        margin-top: -{CARD_H}px; 
-        pointer-events: none;
-    }}
-    
-    .metro-card span {{ font-size: 10px; text-transform: uppercase; }}
-    .metro-card b {{ font-size: 16px; }}
-    
-    /* Tabel Rapat */
-    .custom-table {{ width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 5px; }}
-    .custom-table th {{ background-color: #add8e6; color: black; padding: 5px; text-align: center; font-weight: 900; border: 1px solid #ddd; }}
-    .custom-table td {{ padding: 5px; text-align: center; border: 1px solid #ddd; }}
-</style>
-""", unsafe_allow_html=True)
+# CSS ENGINE: Mencegah bentrok antara Login dan Dashboard
+def inject_style(is_login=False):
+    if is_login:
+        st.markdown("""
+        <style>
+            [data-testid="stHeader"] { display: none; }
+            /* Warna Garis & Ikon Login */
+            div[data-baseweb="input"] { border-color: #d9467a !important; }
+            span[data-testid="stIconMaterial"] { color: #399abf !important; }
+            .stMarkdown p:has(a) { display: none !important; }
+            /* Tombol Login */
+            div.stButton > button { 
+                background-color: #78328b !important; color: white !important; 
+                border-radius: 8px !important; border: none !important; width: 100%;
+            }
+        </style>
+        """, unsafe_allow_html=True)
+    else:
+        CARD_H = 55
+        st.markdown(f"""
+        <style>
+            [data-testid="stHeader"] {{ display: none; }}
+            .block-container {{ padding-top: 0.2rem !important; padding-bottom: 0.2rem !important; }}
+            div[data-testid="stVerticalBlock"] {{ gap: 0.1rem !important; }}
+            
+            /* Warna Tombol Dashboard */
+            div.stButton > button[key="Logout"] {{ background-color: #ff4b4b !important; color: white !important; }}
+            div.stDownloadButton > button {{ background-color: #28a745 !important; color: white !important; }}
+            
+            /* Kartu Rapat */
+            div.stButton > button:not([key="Logout"]) {{ 
+                height: {CARD_H}px !important; background: none !important; border: none !important; 
+                box-shadow: none !important; padding: 0 !important; margin: 0 !important;
+            }}
+            .metro-card {{ 
+                padding: 5px; border-radius: 10px; color: white; font-weight: bold;
+                display: flex; flex-direction: column; justify-content: center; align-items: center; 
+                height: {CARD_H}px; margin-top: -{CARD_H}px; pointer-events: none;
+            }}
+            .custom-table {{ width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 5px; }}
+            .custom-table th {{ background-color: #add8e6; color: black; padding: 5px; text-align: center; border: 1px solid #ddd; }}
+            .custom-table td {{ padding: 5px; text-align: center; border: 1px solid #ddd; }}
+        </style>
+        """, unsafe_allow_html=True)
 
 # 2. Fungsi Auth
 def verify_login(nip, password):
@@ -78,6 +72,7 @@ if "logged_in" not in st.session_state: st.session_state["logged_in"] = False
 if "active_filter" not in st.session_state: st.session_state["active_filter"] = None
 
 if not st.session_state["logged_in"]:
+    inject_style(is_login=True)
     st.title("🔐 SIGN IN")
     with st.form("login_form"):
         nip_input = st.text_input("Username:")
@@ -88,6 +83,7 @@ if not st.session_state["logged_in"]:
                 st.rerun()
             else: st.error("NIP/PASSWORD SALAH!")
 else:
+    inject_style(is_login=False)
     if os.path.exists("header.png"): st.image("header.png")
     else: st.title("LAPORAN DINAMIS KINERJA")
 
@@ -96,7 +92,7 @@ else:
         st.session_state["active_filter"] = None
         st.rerun()
 
-    # --- SISA LOGIKA APP TETAP SAMA ---
+    # --- SISA LOGIKA APP TETAP ---
     @st.cache_data(ttl=3600)
     def get_list_unit():
         all_units = []
