@@ -13,12 +13,11 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - KARTU SEBAGAI TOMBOL (STABIL & RAPI)
+# CSS Styling - KARTU SEBAGAI TOMBOL (STABIL)
 st.markdown("""
 <style>
     [data-testid="stHeader"] { display: none; }
     .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; }
-    .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
     
     /* Tombol jadi bentuk kartu yang stabil */
     div.stButton > button {
@@ -42,10 +41,10 @@ st.markdown("""
         box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
     
-    /* Warna spesifik kartu */
-    button[key="btn_sudah"] { background-color: #399abf !important; }
-    button[key="btn_belum"] { background-color: #e7465d !important; }
-    button[key="btn_tidak"] { background-color: #78328b !important; }
+    /* Warna per posisi button (pasti nempel) */
+    div.stColumn:nth-of-type(1) button { background-color: #399abf !important; }
+    div.stColumn:nth-of-type(2) button { background-color: #e7465d !important; }
+    div.stColumn:nth-of-type(3) button { background-color: #78328b !important; }
 
     .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
     .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; text-transform: uppercase !important; }
@@ -138,9 +137,9 @@ else:
             c1, c2, c3 = st.columns(3)
             def toggle_filter(val): st.session_state["active_filter"] = None if st.session_state["active_filter"] == val else val
             
-            if c1.button(f"SUDAH DINILAI\n{s.get('sudah', 0)}", key="btn_sudah"): toggle_filter("sudah")
-            if c2.button(f"BELUM DINILAI\n{s.get('belum', 0)}", key="btn_belum"): toggle_filter("belum")
-            if c3.button(f"TIDAK ADA DATA\n{s.get('tidak ada data', 0)}", key="btn_tidak"): toggle_filter("tidak ada data")
+            if c1.button(f"SUDAH DINILAI\n{s.get('sudah', 0)}"): toggle_filter("sudah")
+            if c2.button(f"BELUM DINILAI\n{s.get('belum', 0)}"): toggle_filter("belum")
+            if c3.button(f"TIDAK ADA DATA\n{s.get('tidak ada data', 0)}"): toggle_filter("tidak ada data")
             
             # --- TABEL ---
             if st.session_state["active_filter"]:
