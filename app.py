@@ -13,30 +13,42 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - Final & Fixed
+# CSS Styling - Final & Fixed (Kerapatan & Warna)
 CARD_H = 55 
 
 st.markdown(f"""
 <style>
+    /* Hilangkan Header & Rapatkan Container */
     [data-testid="stHeader"] {{ display: none; }}
-    .block-container {{ padding-top: 0.5rem !important; padding-bottom: 1rem !important; }}
+    .block-container {{ padding-top: 0.2rem !important; padding-bottom: 0.2rem !important; }}
+    div[data-testid="stVerticalBlock"] {{ gap: 0.1rem !important; }}
     
-    /* 1. Tombol Logout (Tetap Merah) */
-    div.stButton > button[key="Logout"] {{ background-color: #ff4b4b !important; color: white !important; border: none !important; }}
+    /* Tombol Logout (Paksa Merah) */
+    div.stButton > button[key="Logout"] {{ 
+        background-color: #ff4b4b !important; 
+        color: white !important; 
+        border: none !important; 
+    }}
     
-    /* 2. Tombol Download (Tetap Ijo) */
-    div.stDownloadButton > button {{ background-color: #28a745 !important; color: white !important; border: none !important; }}
+    /* Tombol Download (Paksa Ijo) */
+    div.stDownloadButton > button {{ 
+        background-color: #28a745 !important; 
+        color: white !important; 
+        border: none !important; 
+        margin-bottom: 0px !important; 
+    }}
     
-    /* 3. Tombol Kartu SAJA yang dibersihkan (kecuali Logout) */
+    /* Tombol Kartu: Bersihkan total */
     div.stButton > button:not([key="Logout"]) {{ 
         height: {CARD_H}px !important; 
         background: none !important; 
         border: none !important; 
         box-shadow: none !important; 
         padding: 0 !important; 
+        margin: 0 !important;
     }}
     
-    /* Metro Card - Kartu Visual */
+    /* Metro Card - Visual */
     .metro-card {{ 
         padding: 5px; border-radius: 10px; color: white; font-weight: bold;
         display: flex; flex-direction: column; justify-content: center; align-items: center; 
@@ -48,9 +60,10 @@ st.markdown(f"""
     .metro-card span {{ font-size: 10px; text-transform: uppercase; }}
     .metro-card b {{ font-size: 16px; }}
     
-    .custom-table {{ width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }}
-    .custom-table th {{ background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; }}
-    .custom-table td {{ padding: 8px; text-align: center; border: 1px solid #ddd; }}
+    /* Tabel Rapat */
+    .custom-table {{ width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 5px; }}
+    .custom-table th {{ background-color: #add8e6; color: black; padding: 5px; text-align: center; font-weight: 900; border: 1px solid #ddd; }}
+    .custom-table td {{ padding: 5px; text-align: center; border: 1px solid #ddd; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -114,7 +127,7 @@ else:
         return pd.DataFrame(all_data)
 
     list_unit = get_list_unit()
-    st.markdown("<h5 style='text-align: center;'>PENILAIAN TRIWULAN</h5>", unsafe_allow_html=True)
+    st.markdown("<h5 style='text-align: center; margin-bottom: 5px;'>PENILAIAN TRIWULAN</h5>", unsafe_allow_html=True)
     pilih_tempat = st.selectbox("Pilih Perangkat Daerah:", ["-- Pilih --"] + list_unit)
 
     if pilih_tempat != "-- Pilih --":
@@ -136,7 +149,7 @@ else:
                          color_discrete_map={'sangat baik': '#399abf', 'baik': '#78c41b', 'butuh perbaikan': '#f2ed31', 
                                             'kurang': '#f28530', 'sangat kurang': '#eb462e', '0': '#e7465d', 'tidak ada data': '#78328b'})
             
-            fig.update_layout(height=150, showlegend=False, xaxis=dict(title=None, showticklabels=False), yaxis=dict(title=None), margin=dict(t=10, b=10, l=10, r=10))
+            fig.update_layout(height=150, showlegend=False, xaxis=dict(title=None, showticklabels=False), yaxis=dict(title=None), margin=dict(t=5, b=5, l=5, r=5))
             st.plotly_chart(fig, use_container_width=True)
             
             df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
