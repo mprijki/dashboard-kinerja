@@ -17,7 +17,18 @@ st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 st.markdown("""
 <style>
     [data-testid="stHeader"] { display: none; }
-    .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; }
+    .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; max-width: 100% !important; }
+    
+    /* CSS BIAR KOLOM JEJER 3 DI MOBILE */
+    [data-testid="column"] {
+        width: 33.33% !important;
+        flex: 1 1 33.33% !important;
+        min-width: 33.33% !important;
+    }
+    [data-testid="stHorizontalBlock"] {
+        gap: 5px !important;
+    }
+
     .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
     .metro-card { 
         padding: 10px 5px; border-radius: 12px; color: white; margin-bottom: 10px; font-weight: bold;
