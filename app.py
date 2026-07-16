@@ -147,25 +147,25 @@ else:
             if st.session_state["active_filter"]:
                 st.write("---")
                 st.subheader(f"DETAIL: {st.session_state['active_filter'].upper()}")
+                
+                # Tetap ambil struktur kolom meskipun data kosong
                 df_sub = df_filtered[df_filtered['status_clean'] == st.session_state["active_filter"]][['nama', 'status_penilaian']]
                 df_sub.columns = ["NAMA", "STATUS PENILAIAN"]
                 
                 page_size = 100
                 total_data = len(df_sub)
-                
-                # --- FIX ERROR: Pastikan total_pages minimal 1 ---
                 total_pages = max(1, (total_data // page_size) + (1 if total_data % page_size != 0 else 0))
                 
                 col_nav1, col_nav2 = st.columns([1, 2])
                 with col_nav1:
-                    # --- FIX ERROR: Kalau total_data 0, kasih default value yang aman ---
-                    page_num = st.number_input("Pilih Halaman:", min_value=1, max_value=total_pages, value=1 if total_data > 0 else 1)
-                
+                    page_num = st.number_input("Pilih Halaman:", min_value=1, max_value=total_pages, value=1)
                 with col_nav2:
                     if total_data > 0:
                         st.markdown(f"<br>Halaman **{page_num}** dari **{total_pages}** <br>Menampilkan data **{(page_num-1)*page_size + 1}** - **{min(page_num*page_size, total_data)}** dari **{total_data}**", unsafe_allow_html=True)
-                        st.markdown(df_sub.iloc[(page_num-1)*page_size : page_num*page_size].to_html(classes="custom-table", index=False), unsafe_allow_html=True)
                     else:
-                        st.warning("Data kosong, Cuk!")
-        else: st.info("Data tidak ditemukan atau kosong.")
+                        st.markdown("<br>Data tidak tersedia.", unsafe_allow_html=True)
+                
+                # Tetap render tabel (kalau kosong dia cuma munculin header saja)
+                tabel_html = df_sub.iloc[(page_num-1)*page_size : page_num*page_size].to_html(classes="custom-table", index=False)
+                st.markdown(tabel_html, unsafe_allow_html=True)
     else: st.info("Pilih Perangkat Daerah di atas.")
