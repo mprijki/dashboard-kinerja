@@ -20,18 +20,25 @@ st.markdown("""
     .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; }
     .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
     
-    /* EFEK HOVER UNTUK SEMUA TOMBOL (LOGIN, LOGOUT, DOWNLOAD, KARTU) */
+    /* Hover untuk tombol standard (Logout, Download, Login) */
     div.stButton > button:hover {
         transform: scale(1.02);
         filter: brightness(1.1);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         transition: all 0.2s ease;
     }
-    
+
+    /* HOVER KHUSUS KARTU (Pindahin ke sini biar gak ketutup) */
     .metro-card { 
         padding: 10px 5px; border-radius: 12px; color: white; margin-bottom: 10px; font-weight: bold;
         display: flex; flex-direction: column; justify-content: center; align-items: center; height: 80px;
+        transition: all 0.2s ease; cursor: pointer;
     }
+    .metro-card:hover {
+        transform: scale(1.03);
+        filter: brightness(1.2);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    
     .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
     .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; text-transform: uppercase !important; }
     .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
