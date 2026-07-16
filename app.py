@@ -13,7 +13,7 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling
+# CSS Styling - WARNA BALIKIN KE SEMULA
 st.markdown("""
 <style>
     [data-testid="stHeader"] { display: none; }
@@ -62,7 +62,6 @@ else:
         st.session_state["active_filter"] = None
         st.rerun()
 
-    @st.cache_data(ttl=3600)
     def get_list_unit():
         all_units = []
         page_size = 1000
@@ -76,7 +75,6 @@ else:
             page += 1
         return sorted(list(set(all_units)))
 
-    @st.cache_data(ttl=3600)
     def get_data_by_filter(pilih_tempat):
         all_data = []
         page_size = 1000
@@ -99,9 +97,7 @@ else:
             df_tampil.columns = ["NAMA", "STATUS PENILAIAN"]
             
             buffer = io.BytesIO()
-            with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
-                df_tampil.to_excel(writer, index=False)
-            
+            with pd.ExcelWriter(buffer, engine='openpyxl') as writer: df_tampil.to_excel(writer, index=False)
             st.download_button("Download Excel", buffer.getvalue(), f"Data_{pilih_tempat}.xlsx", use_container_width=True)
             
             st.write("---")
@@ -122,24 +118,23 @@ else:
             df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
             s = df_filtered['status_clean'].value_counts()
             
-            # --- LOGIKA KARTU ---
+            # --- TOMBOL KARTU DENGAN WARNA ASLI ---
             c1, c2, c3 = st.columns(3)
+            def toggle_filter(val): st.session_state["active_filter"] = None if st.session_state["active_filter"] == val else val
             
-            def toggle_filter(new_val):
-                if st.session_state["active_filter"] == new_val:
-                    st.session_state["active_filter"] = None
-                else:
-                    st.session_state["active_filter"] = new_val
-
-            if c1.button(f"SUDAH\n{s.get('sudah', 0)}", use_container_width=True): toggle_filter("sudah")
-            if c2.button(f"BELUM\n{s.get('belum', 0)}", use_container_width=True): toggle_filter("belum")
-            if c3.button(f"TIDAK ADA\n{s.get('tidak ada data', 0)}", use_container_width=True): toggle_filter("tidak ada data")
+            if c1.button(" ", use_container_width=True): toggle_filter("sudah")
+            c1.markdown(f'<div class="metro-card" style="background:#28a745; margin-top:-65px; pointer-events:none"><span>SUDAH</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
+            
+            if c2.button(" ", use_container_width=True): toggle_filter("belum")
+            c2.markdown(f'<div class="metro-card" style="background:#fd7e14; margin-top:-65px; pointer-events:none"><span>BELUM</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
+            
+            if c3.button(" ", use_container_width=True): toggle_filter("tidak ada data")
+            c3.markdown(f'<div class="metro-card" style="background:#6c757d; margin-top:-65px; pointer-events:none"><span>TIDAK ADA</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
             
             # --- LOGIKA TABEL ---
             if st.session_state["active_filter"]:
                 st.write("---")
-                st.subheader(f"DETAIL STATUS: {st.session_state['active_filter'].upper()}")
-                
+                st.subheader(f"DETAIL: {st.session_state['active_filter'].upper()}")
                 df_sub = df_filtered[df_filtered['status_clean'] == st.session_state["active_filter"]][['nama', 'status_penilaian']]
                 df_sub.columns = ["NAMA", "STATUS PENILAIAN"]
                 
@@ -152,9 +147,6 @@ else:
                     page_num = st.number_input("Pilih Halaman:", min_value=1, max_value=total_pages, value=1)
                 with col_nav2:
                     st.markdown(f"<br>Halaman **{page_num}** dari **{total_pages}** <br>Menampilkan data **{(page_num-1)*page_size + 1}** - **{min(page_num*page_size, total_data)}** dari **{total_data}**", unsafe_allow_html=True)
-                
                 st.markdown(df_sub.iloc[(page_num-1)*page_size : page_num*page_size].to_html(classes="custom-table", index=False), unsafe_allow_html=True)
-        else:
-            st.info("Data tidak ditemukan atau kosong.")
-    else:
-        st.info("Pilih Perangkat Daerah di atas.")
+        else: st.info("Data tidak ditemukan atau kosong.")
+    else: st.info("Pilih Perangkat Daerah di atas.")
