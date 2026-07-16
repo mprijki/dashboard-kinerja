@@ -13,25 +13,26 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - WARNA DIPAKSA MASUK DENGAN !IMPORTANT
+# CSS Styling - Tombol jadi Kartu
 st.markdown("""
 <style>
     [data-testid="stHeader"] { display: none; }
-    .block-container { padding-top: 0.5rem !important; }
+    .block-container { padding-top: 0.5rem !important; padding-bottom: 1rem !important; }
     
-    /* Styling Dasar Tombol */
-    div[data-testid="stVerticalBlock"] div[data-testid="stButton"] button {
+    /* Tombol jadi kartu */
+    div[data-testid="stButton"] button {
         width: 100% !important;
         height: 85px !important;
         border-radius: 12px !important;
         border: none !important;
         transition: all 0.2s ease !important;
-        padding: 0 !important;
         color: white !important;
+        font-weight: bold !important;
+        padding: 0 !important;
     }
-    div[data-testid="stVerticalBlock"] div[data-testid="stButton"] button:hover {
+    div[data-testid="stButton"] button:hover {
         transform: scale(1.03) !important;
-        box-shadow: 0 6px 15px rgba(0,0,0,0.3) !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3) !important;
     }
     
     .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
@@ -41,7 +42,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Fungsi Auth
+# 2. Fungsi Auth
 def verify_login(nip, password):
     response = supabase.table("users_login").select("password_hash").eq("nip", nip).execute()
     if response.data:
@@ -49,25 +50,16 @@ def verify_login(nip, password):
         if bcrypt.checkpw(password.encode('utf-8'), stored_hash): return True
     return False
 
-# Fungsi Metrocards
+# Fungsi Kartu
 def display_metro_card(col, label, color, val, key, data_s, toggle_func):
     with col:
-        # Inject warna khusus per tombol berdasarkan key
-        st.markdown(f"""
-            <style>
-                button[key="{key}"] {{ background-color: {color} !important; }}
-            </style>
-        """, unsafe_allow_html=True)
-        
-        label_html = f"""<div style="text-align:center; line-height:1.2; pointer-events:none;">
-            <div style="font-size:11px;">{label}</div>
-            <div style="font-size:20px; font-weight:900;">{data_s.get(val, 0)}</div>
-        </div>"""
-        
-        if st.button(label_html, key=key, use_container_width=True):
+        # Inject warna via style
+        st.markdown(f'<style>button[key="{key}"] {{ background-color: {color} !important; }}</style>', unsafe_allow_html=True)
+        html_label = f'<div style="text-align:center; line-height:1.2;"><div style="font-size:11px;">{label}</div><div style="font-size:22px; font-weight:900;">{data_s.get(val, 0)}</div></div>'
+        if st.button(html_label, key=key, use_container_width=True):
             toggle_func(val)
 
-# Session State
+# 3. Logika Session
 if "logged_in" not in st.session_state: st.session_state["logged_in"] = False
 if "active_filter" not in st.session_state: st.session_state["active_filter"] = None
 
