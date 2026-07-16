@@ -21,12 +21,16 @@ st.markdown("""
     .stImage > img { width: 100% !important; height: auto !important; display: block !important; margin: 0 auto !important; }
     .metro-card { 
         padding: 10px 5px; border-radius: 12px; color: white; margin-bottom: 10px; font-weight: bold;
-        display: flex; flex-direction: column; justify-content: center; align-items: center; height: 80px;
+        display: flex; flex-direction: column; justify-content: center; align-items: center; height: 60px;
     }
     .custom-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 10px; }
     .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; text-transform: uppercase !important; }
     .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
     .legend-box { font-size: 12px; margin-bottom: 15px; text-align: center; }
+    
+    /* Warna Tombol */
+    button[kind="secondary"][key="Logout"] { background-color: #ff4b4b !important; color: white !important; border: 1px solid #ff4b4b !important; }
+    button[kind="secondary"][key="Download Excel"] { background-color: #28a745 !important; color: white !important; border: 1px solid #28a745 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -57,7 +61,7 @@ else:
     if os.path.exists("header.png"): st.image("header.png")
     else: st.title("LAPORAN DINAMIS KINERJA")
 
-    if st.button("Logout", use_container_width=True):
+    if st.button("Logout", key="Logout", use_container_width=True):
         st.session_state["logged_in"] = False
         st.session_state["active_filter"] = None
         st.rerun()
@@ -100,7 +104,7 @@ else:
             
             buffer = io.BytesIO()
             with pd.ExcelWriter(buffer, engine='openpyxl') as writer: df_tampil.to_excel(writer, index=False)
-            st.download_button("Download Excel", buffer.getvalue(), f"Data_{pilih_tempat}.xlsx", use_container_width=True)
+            st.download_button("Download Excel", buffer.getvalue(), f"Data_{pilih_tempat}.xlsx", key="Download Excel", use_container_width=True)
             
             st.write("---")
             st.markdown(f"##### PENILAIAN TRIWULAN: {pilih_tempat}")
@@ -113,40 +117,31 @@ else:
                          color_discrete_map={'sangat baik': '#399abf', 'baik': '#78c41b', 'butuh perbaikan': '#f2ed31', 
                                             'kurang': '#f28530', 'sangat kurang': '#eb462e', '0': '#e7465d', 'tidak ada data': '#78328b'})
             
-            # Ubah height di sini, makin kecil nilainya makin cebol diagramnya
             fig.update_layout(height=150, showlegend=False, xaxis=dict(title=None, showticklabels=False), yaxis=dict(title=None), margin=dict(t=10, b=10, l=10, r=10))
             st.plotly_chart(fig, use_container_width=True)
             
-            # --- LEGEND KOTAK ---
             st.markdown("""
             <div class="legend-box" style="line-height: 2;">
-                <span style="color:#399abf">■</span> Sangat Baik | 
-                <span style="color:#78c41b">■</span> Baik | 
-                <span style="color:#f2ed31">■</span> Perbaikan<br>
-                <span style="color:#f28530">■</span> Kurang | 
-                <span style="color:#eb462e">■</span> Sangat Kurang | 
-                <span style="color:#e7465d">■</span> belum ada nilai | 
-                <span style="color:#78328b">■</span> Tidak Ada Data
+                <span style="color:#399abf">■</span> Sangat Baik | <span style="color:#78c41b">■</span> Baik | <span style="color:#f2ed31">■</span> Perbaikan<br>
+                <span style="color:#f28530">■</span> Kurang | <span style="color:#eb462e">■</span> Sangat Kurang | <span style="color:#e7465d">■</span> belum ada nilai | <span style="color:#78328b">■</span> Tidak Ada Data
             </div>
             """, unsafe_allow_html=True)
             
             df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
             s = df_filtered['status_clean'].value_counts()
             
-            # --- TOMBOL KARTU ---
             c1, c2, c3 = st.columns(3)
             def toggle_filter(val): st.session_state["active_filter"] = None if st.session_state["active_filter"] == val else val
             
             if c1.button(" ", key="btn_sudah", use_container_width=True): toggle_filter("sudah")
-            c1.markdown(f'<div class="metro-card" style="background:#399abf; margin-top:-65px; pointer-events:none"><span>SUDAH DINILAI</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
+            c1.markdown(f'<div class="metro-card" style="background:#399abf; margin-top:-45px; pointer-events:none"><span>SUDAH DINILAI</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
             
             if c2.button(" ", key="btn_belum", use_container_width=True): toggle_filter("belum")
-            c2.markdown(f'<div class="metro-card" style="background:#e7465d; margin-top:-65px; pointer-events:none"><span>BELUM DINILAI</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
+            c2.markdown(f'<div class="metro-card" style="background:#e7465d; margin-top:-45px; pointer-events:none"><span>BELUM DINILAI</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
             
             if c3.button(" ", key="btn_tidak", use_container_width=True): toggle_filter("tidak ada data")
-            c3.markdown(f'<div class="metro-card" style="background:#78328b; margin-top:-65px; pointer-events:none"><span>TIDAK ADA DATA PENILAIAN</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
+            c3.markdown(f'<div class="metro-card" style="background:#78328b; margin-top:-45px; pointer-events:none"><span>TIDAK ADA DATA PENILAIAN</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
             
-            # --- LOGIKA TABEL ---
             if st.session_state["active_filter"]:
                 st.write("---")
                 st.subheader(f"DETAIL: {st.session_state['active_filter'].upper()}")
