@@ -40,6 +40,18 @@ st.markdown("""
     .custom-table th { background-color: #add8e6; color: black; padding: 10px; text-align: center; font-weight: 900; border: 1px solid #ddd; text-transform: uppercase !important; }
     .custom-table td { padding: 8px; text-align: center; border: 1px solid #ddd; }
     .legend-box { font-size: 12px; margin-bottom: 15px; text-align: center; }
+
+    /* TAMBAHAN BIAR GAK OFFSET DI MOBILE */
+    @media (max-width: 500px) {
+        .metro-card { 
+            height: 60px !important; 
+            padding: 2px !important; 
+            font-size: 9px !important; 
+        }
+        .metro-card b { 
+            font-size: 12px !important; 
+        }
+    }
 </style>
 """, unsafe_allow_html=True)
 
