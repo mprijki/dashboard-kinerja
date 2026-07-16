@@ -34,7 +34,7 @@ st.markdown("""
 
 # 1. Header
 if os.path.exists("header.png"): st.image("header.png")
-else: st.title("Dashboard Kinerja")
+else: st.title("LAPORAN DINAMIS KINERJA")
 
 # Fungsi Data dengan Pagination
 @st.cache_data(ttl=3600)
@@ -84,7 +84,7 @@ if pilih_tempat != "-- Pilih --":
         st.write("---")
 
         # Chart
-        st.subheader(f"Penilaian Triwulan: {pilih_tempat}")
+        st.subheader(f"PENILAIAN TRIWULAN: {pilih_tempat}")
         order_kategori = ['sangat baik', 'baik', 'butuh perbaikan', 'kurang', 'sangat kurang', '0', 'tidak ada data']
         counts = df_filtered['kuadran_kinerja'].astype(str).str.lower().value_counts().reindex(order_kategori, fill_value=0).reset_index()
         counts.columns = ['Kuadran', 'Total']
@@ -109,7 +109,7 @@ if pilih_tempat != "-- Pilih --":
         
         # Tabel dengan Paging 100
         # --- Tabel dengan Paging 100 ---
-        st.subheader("Detail Pegawai")
+        st.subheader("DETAIL STATUS PENILAIAN")
         page_size = 100
         total_pages = (len(df_tampil) // page_size) + 1
         
