@@ -13,7 +13,7 @@ supabase = create_client(url, key)
 
 st.set_page_config(page_title="Dashboard Kinerja", layout="centered")
 
-# CSS Styling - WARNA BALIKIN KE SEMULA
+# CSS Styling
 st.markdown("""
 <style>
     [data-testid="stHeader"] { display: none; }
@@ -113,22 +113,33 @@ else:
             fig.update_layout(showlegend=False, xaxis=dict(title=None, showticklabels=False), yaxis=dict(title=None), margin=dict(t=10, b=10, l=10, r=10))
             st.plotly_chart(fig, use_container_width=True)
             
-            st.markdown('<div class="legend-box">🔵 Sangat Baik | 🟢 Baik | 🟡 Perbaikan<br>🟠 Kurang | 🔴 Sangat Kurang | 🔘 Belum Penilaian</div>', unsafe_allow_html=True)
+            # --- LEGEND KOTAK ---
+            st.markdown("""
+            <div class="legend-box" style="line-height: 2;">
+                <span style="color:#007bff">■</span> Sangat Baik | 
+                <span style="color:#28a745">■</span> Baik | 
+                <span style="color:#d4ac0d">■</span> Perbaikan<br>
+                <span style="color:#fd7e14">■</span> Kurang | 
+                <span style="color:#f44336">■</span> Sangat Kurang | 
+                <span style="color:#566573">■</span> 0 | 
+                <span style="color:#f44336">■</span> Tidak Ada Data
+            </div>
+            """, unsafe_allow_html=True)
             
             df_filtered['status_clean'] = df_filtered['status_penilaian'].astype(str).str.lower().str.strip()
             s = df_filtered['status_clean'].value_counts()
             
-            # --- TOMBOL KARTU DENGAN WARNA ASLI ---
+            # --- TOMBOL KARTU ---
             c1, c2, c3 = st.columns(3)
             def toggle_filter(val): st.session_state["active_filter"] = None if st.session_state["active_filter"] == val else val
             
-            if c1.button(" ", use_container_width=True): toggle_filter("sudah")
+            if c1.button(" ", key="btn_sudah", use_container_width=True): toggle_filter("sudah")
             c1.markdown(f'<div class="metro-card" style="background:#28a745; margin-top:-65px; pointer-events:none"><span>SUDAH</span><b>{s.get("sudah", 0)}</b></div>', unsafe_allow_html=True)
             
-            if c2.button(" ", use_container_width=True): toggle_filter("belum")
+            if c2.button(" ", key="btn_belum", use_container_width=True): toggle_filter("belum")
             c2.markdown(f'<div class="metro-card" style="background:#fd7e14; margin-top:-65px; pointer-events:none"><span>BELUM</span><b>{s.get("belum", 0)}</b></div>', unsafe_allow_html=True)
             
-            if c3.button(" ", use_container_width=True): toggle_filter("tidak ada data")
+            if c3.button(" ", key="btn_tidak", use_container_width=True): toggle_filter("tidak ada data")
             c3.markdown(f'<div class="metro-card" style="background:#6c757d; margin-top:-65px; pointer-events:none"><span>TIDAK ADA</span><b>{s.get("tidak ada data", 0)}</b></div>', unsafe_allow_html=True)
             
             # --- LOGIKA TABEL ---
